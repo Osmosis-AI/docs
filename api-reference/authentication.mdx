@@ -4,7 +4,7 @@ description: 'Learn how to authenticate with the Osmosis API'
 ---
 
 <Note>
-  All API requests to Osmosis require authentication. Your API key serves as both your authentication token and tenant identifier.
+  All API requests to Osmosis require authentication. Your API key is used in the Authorization header. To select which feature store (collection) the model should use, specify the feature store identifier in the <code>x-feature-store-id</code> header.
 </Note>
 
 ## Getting an API Key
@@ -13,22 +13,23 @@ Please refer to the [Quickstart guide](/quickstart) to get your API key.
 
 ## Using Your API Key
 
-Authenticate all API requests by including your API key in the Authorization header using Bearer token authentication:
+Authenticate all API requests by including your API key in the Authorization header using Bearer token authentication, and specify the Feature Store ID in the x-feature-store-id header:
 
 <CodeGroup>
 ```bash HTTP Headers
 'Authorization: Bearer YOUR_API_KEY'
+'x-feature-store-id: YOUR_FEATURE_STORE_ID'
 'Content-Type: application/json'
 ```
 </CodeGroup>
 
-## Tenant ID
+## Feature Store ID
 
-<Warning>
-  The `tenant_id` field in request bodies corresponds to a unique recommendation collection, enabling sub-tenancy isolation for different agentic workflows. This ensures proper data isolation and security between different agent instances and use cases.
-</Warning>
+<Info>
+  The <code>x-feature-store-id</code> header determines which feature store (collection) the model will use for this request. This allows you to manage multiple stores/collections within your workspace.
+</Info>
 
-Example request body structure:
+Example request structure:
 
 <CodeGroup>
 
@@ -37,9 +38,8 @@ Example request body structure:
 curl -X POST https://api.osmosis.ai/any_endpoint \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "tenant_id": "YOUR_API_KEY"
-  }'
+  -H "x-feature-store-id: YOUR_FEATURE_STORE_ID" \
+  -d '{}'
 ```
 
 ```typescript TypeScript
@@ -48,13 +48,13 @@ import axios from 'axios';
 
 async function makeAuthenticatedRequest() {
   const apiKey = process.env.OSMOSIS_API_KEY;
+  const featureStoreId = process.env.FEATURE_STORE_ID;
   
-  const response = await axios.post('https://api.osmosis.ai/any_endpoint', {
-    tenant_id: apiKey
-  }, {
+  const response = await axios.post('https://api.osmosis.ai/any_endpoint', {}, {
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
+      'Authorization': `Bearer ${apiKey}`,
+      'x-feature-store-id': featureStoreId
     }
   });
   
@@ -69,13 +69,15 @@ import requests
 
 def make_authenticated_request():
     api_key = os.getenv('OSMOSIS_API_KEY')
+    feature_store_id = os.getenv('FEATURE_STORE_ID')
     
     response = requests.post(
         "https://api.osmosis.ai/any_endpoint",
-        json={"tenant_id": api_key},
+        json={},
         headers={
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${api_key}`
+            "Authorization": f"Bearer {api_key}",
+            "x-feature-store-id": feature_store_id
         }
     )
     
@@ -95,12 +97,9 @@ import (
 
 func makeAuthenticatedRequest() (*http.Response, error) {
     apiKey := os.Getenv("OSMOSIS_API_KEY")
+    featureStoreId := os.Getenv("FEATURE_STORE_ID")
     
-    payload := map[string]string{
-        "tenant_id": apiKey,
-    }
-
-    jsonData, err := json.Marshal(payload)
+    jsonData, err := json.Marshal(map[string]string{})
     if err != nil {
         return nil, err
     }
@@ -111,7 +110,8 @@ func makeAuthenticatedRequest() (*http.Response, error) {
     }
 
     req.Header.Set("Content-Type", "application/json")
-    req.Header.Set("Authorization", `Bearer ${apiKey}`)
+    req.Header.Set("Authorization", "Bearer "+apiKey)
+    req.Header.Set("x-feature-store-id", featureStoreId)
 
     client := &http.Client{}
     return client.Do(req)

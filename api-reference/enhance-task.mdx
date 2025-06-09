@@ -24,15 +24,18 @@ POST https://api.osmosis.ai/enhance_task
   <HeaderParameter name="Authorization" required type="string">
     Bearer YOUR_API_KEY
   </HeaderParameter>
+  <HeaderParameter name="x-feature-store-id" required type="string">
+    YOUR_FEATURE_STORE_ID
+  </HeaderParameter>
 </RequestHeader>
+
+<Info>
+  The <code>x-feature-store-id</code> header determines which feature store (collection) the model will use for this request. This allows you to manage multiple stores/collections within your workspace.
+</Info>
 
 ## Request Body
 
 ### Root Level Parameters
-
-<ParamField body="tenant_id" type="string" required>
-  Unique identifier that corresponds to a dedicated recommendation collection, enabling sub-tenancy isolation for different agentic workflows.
-</ParamField>
 
 <ParamField body="input_text" type="string" required>
   The agent's input/query. This can be a user prompt, or the task given to a sub agent.
@@ -50,8 +53,8 @@ POST https://api.osmosis.ai/enhance_task
 curl -X POST https://api.osmosis.ai/enhance_task \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "x-feature-store-id: YOUR_FEATURE_STORE_ID" \
   -d '{
-    "tenant_id": "api_key",
     "input_text": "Process refund request for damaged item",
     "agent_type": "support_agent"
   }'
@@ -62,9 +65,9 @@ import axios from 'axios';
 
 async function enhanceTask() {
   const apiKey = process.env.OSMOSIS_API_KEY;
+  const featureStoreId = process.env.FEATURE_STORE_ID;
   
   const payload = {
-    tenant_id: 'api_key',
     input_text: 'Process refund request for damaged item',
     agent_type: 'support_agent'
   };
@@ -72,7 +75,8 @@ async function enhanceTask() {
   const response = await axios.post('https://api.osmosis.ai/enhance_task', payload, {
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
+      'Authorization': `Bearer ${apiKey}`,
+      'x-feature-store-id': featureStoreId
     }
   });
   
@@ -86,9 +90,9 @@ import requests
 
 def enhance_task():
     api_key = os.getenv('OSMOSIS_API_KEY')
+    feature_store_id = os.getenv('FEATURE_STORE_ID')
     
     payload = {
-        "tenant_id": "api_key",
         "input_text": "Process refund request for damaged item",
         "agent_type": "support_agent"
     }
@@ -98,7 +102,8 @@ def enhance_task():
         json=payload,
         headers={
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}"
+            "Authorization": f"Bearer {api_key}",
+            "x-feature-store-id": feature_store_id
         }
     )
     
@@ -116,16 +121,15 @@ import (
 )
 
 type EnhanceTaskPayload struct {
-    TenantID  string `json:"tenant_id"`
     InputText string `json:"input_text"`
     AgentType string `json:"agent_type,omitempty"`
 }
 
 func enhanceTask() ([]byte, error) {
     apiKey := os.Getenv("OSMOSIS_API_KEY")
+    featureStoreId := os.Getenv("FEATURE_STORE_ID")
     
     payload := EnhanceTaskPayload{
-        TenantID:  "api_key",
         InputText: "Process refund request for damaged item",
         AgentType: "support_agent",
     }
@@ -142,6 +146,7 @@ func enhanceTask() ([]byte, error) {
 
     req.Header.Set("Content-Type", "application/json")
     req.Header.Set("Authorization", "Bearer "+apiKey)
+    req.Header.Set("x-feature-store-id", featureStoreId)
 
     client := &http.Client{}
     resp, err := client.Do(req)
@@ -199,7 +204,7 @@ Example error response:
 {
   "detail": [
     {
-      "loc": ["body", "tenant_id"],
+      "loc": ["body"],
       "msg": "field required",
       "type": "value_error.missing"
     }

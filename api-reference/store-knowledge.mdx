@@ -24,15 +24,18 @@ POST https://api.osmosis.ai/store_knowledge
   <HeaderParameter name="Authorization" required type="string">
     Bearer YOUR_API_KEY
   </HeaderParameter>
+  <HeaderParameter name="x-feature-store-id" required type="string">
+    YOUR_FEATURE_STORE_ID
+  </HeaderParameter>
 </RequestHeader>
+
+<Info>
+  The <code>x-feature-store-id</code> header determines which feature store (collection) the model will use for this request. This allows you to manage multiple stores/collections within your workspace.
+</Info>
 
 ## Request Body
 
 ### Root Level Parameters
-
-<ParamField body="tenant_id" type="string" required initialValue="YOUR_API_KEY">
-  Unique identifier that corresponds to a dedicated recommendation collection, enabling sub-tenancy isolation for different agentic workflows
-</ParamField>
 
 <ParamField body="query" type="string" required initialValue="Process refund request for damaged item">
   The original user query or instruction that initiated the interaction
@@ -100,8 +103,8 @@ Each turn in the `turns` array represents a single interaction step and contains
 curl -X POST https://api.osmosis.ai/store_knowledge \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "x-feature-store-id: YOUR_FEATURE_STORE_ID" \
   -d '{
-    "tenant_id": "YOUR_API_KEY",
     "query": "Find and purchase a red Nike running shoe in size 10",
     "turns": [
       {
@@ -128,6 +131,7 @@ import axios from 'axios';
 
 async function storeKnowledge() {
   const apiKey = process.env.OSMOSIS_API_KEY;
+  const featureStoreId = process.env.FEATURE_STORE_ID;
   
   const decision = {
     action_type: 'click',
@@ -139,7 +143,6 @@ async function storeKnowledge() {
   };
 
   const payload = {
-    tenant_id: apiKey,
     query: 'Find and purchase a red Nike running shoe in size 10',
     turns: [
       {
@@ -163,7 +166,8 @@ async function storeKnowledge() {
   const response = await axios.post('https://api.osmosis.ai/store_knowledge', payload, {
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
+      'Authorization': `Bearer ${apiKey}`,
+      'x-feature-store-id': featureStoreId
     }
   });
   
@@ -179,6 +183,7 @@ import json
 
 def store_knowledge():
     api_key = os.getenv('OSMOSIS_API_KEY')
+    feature_store_id = os.getenv('FEATURE_STORE_ID')
     
     decision = {
         "action_type": "click",
@@ -190,7 +195,6 @@ def store_knowledge():
     }
     
     payload = {
-        "tenant_id": api_key,
         "query": "Find and purchase a red Nike running shoe in size 10",
         "turns": [
             {
@@ -216,7 +220,8 @@ def store_knowledge():
         json=payload,
         headers={
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}"
+            "Authorization": f"Bearer {api_key}",
+            "x-feature-store-id": feature_store_id
         }
     )
     
@@ -252,7 +257,6 @@ type Turn struct {
 }
 
 type KnowledgePayload struct {
-    TenantID  string                 `json:"tenant_id"`
     Query     string                 `json:"query"`
     Turns     []Turn                 `json:"turns"`
     Success   bool                   `json:"success"`
@@ -263,6 +267,7 @@ type KnowledgePayload struct {
 
 func storeKnowledge() ([]byte, error) {
     apiKey := os.Getenv("OSMOSIS_API_KEY")
+    featureStoreId := os.Getenv("FEATURE_STORE_ID")
     
     decision := Decision{
         ActionType:  "click",
@@ -279,7 +284,6 @@ func storeKnowledge() ([]byte, error) {
     }
 
     payload := KnowledgePayload{
-        TenantID:  apiKey,
         Query:     "Find and purchase a red Nike running shoe in size 10",
         Turns: []Turn{
             {
@@ -312,6 +316,7 @@ func storeKnowledge() ([]byte, error) {
 
     req.Header.Set("Content-Type", "application/json")
     req.Header.Set("Authorization", "Bearer "+apiKey)
+    req.Header.Set("x-feature-store-id", featureStoreId)
 
     client := &http.Client{}
     resp, err := client.Do(req)
@@ -338,17 +343,12 @@ func storeKnowledge() ([]byte, error) {
   Human-readable status message
 </ResponseField>
 
-<ResponseField name="tenant_id" type="string" required>
-  The tenant ID that was used for the request
-</ResponseField>
-
 Example success response:
 
 ```json
 {
   "status": "accepted",
   "message": "Knowledge upload queued for processing",
-  "tenant_id": "api_key"
 }
 ```
 

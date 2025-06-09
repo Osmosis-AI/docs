@@ -21,13 +21,16 @@ POST https://api.osmosis.ai/delete_by_intent
   <HeaderParameter name="Authorization" required type="string">
     Bearer YOUR_API_KEY
   </HeaderParameter>
+  <HeaderParameter name="x-feature-store-id" required type="string">
+    YOUR_FEATURE_STORE_ID
+  </HeaderParameter>
 </RequestHeader>
 
-## Query Parameters
+<Info>
+  The <code>x-feature-store-id</code> header determines which feature store (collection) the model will use for this request. This allows you to manage multiple stores/collections within your workspace.
+</Info>
 
-<ParamField query="tenant_id" type="string" required>
-  The tenant identifier
-</ParamField>
+## Query Parameters
 
 <ParamField query="intent" type="string" required>
   The intent to match against
@@ -42,9 +45,10 @@ POST https://api.osmosis.ai/delete_by_intent
 <CodeGroup>
 
 ```bash cURL
-curl -X POST 'https://api.osmosis.ai/delete_by_intent?tenant_id=api_key&intent=process%20refund&similarity_threshold=0.7' \
+curl -X POST 'https://api.osmosis.ai/delete_by_intent?intent=process%20refund&similarity_threshold=0.7' \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY"
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "x-feature-store-id: YOUR_FEATURE_STORE_ID"
 ```
 
 ```typescript TypeScript
@@ -52,16 +56,17 @@ import axios from 'axios';
 
 async function deleteByIntent() {
   const apiKey = process.env.OSMOSIS_API_KEY;
+  const featureStoreId = process.env.FEATURE_STORE_ID;
   
   const response = await axios.post('https://api.osmosis.ai/delete_by_intent', null, {
     params: {
-      tenant_id: apiKey,
       intent: 'process refund',
       similarity_threshold: 0.7
     },
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
+      'Authorization': `Bearer ${apiKey}`,
+      'x-feature-store-id': featureStoreId
     }
   });
   
@@ -75,9 +80,9 @@ import requests
 
 def delete_by_intent():
     api_key = os.getenv('OSMOSIS_API_KEY')
+    feature_store_id = os.getenv('FEATURE_STORE_ID')
     
     params = {
-        "tenant_id": api_key,
         "intent": "process refund",
         "similarity_threshold": 0.7
     }
@@ -87,7 +92,8 @@ def delete_by_intent():
         params=params,
         headers={
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}"
+            "Authorization": f"Bearer {api_key}",
+            "x-feature-store-id": feature_store_id
         }
     )
     
@@ -105,11 +111,11 @@ import (
 )
 
 func deleteByIntent() ([]byte, error) {
-    apiKey := os.getenv("OSMOSIS_API_KEY")
+    apiKey := os.Getenv("OSMOSIS_API_KEY")
+    featureStoreId := os.Getenv("FEATURE_STORE_ID")
     baseURL := "https://api.osmosis.ai/delete_by_intent"
     
     params := url.Values{}
-    params.Add("tenant_id", apiKey)
     params.Add("intent", "process refund")
     params.Add("similarity_threshold", "0.7")
     
@@ -120,6 +126,7 @@ func deleteByIntent() ([]byte, error) {
 
     req.Header.Set("Content-Type", "application/json")
     req.Header.Set("Authorization", "Bearer "+apiKey)
+    req.Header.Set("x-feature-store-id", featureStoreId)
 
     client := &http.Client{}
     resp, err := client.Do(req)
@@ -167,7 +174,7 @@ Example error response:
 {
   "detail": [
     {
-      "loc": ["query", "tenant_id"],
+      "loc": ["query"],
       "msg": "field required",
       "type": "value_error.missing"
     }

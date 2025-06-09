@@ -11,6 +11,9 @@ The Osmosis API provides a simple API for building agentic workflows. To start u
   </Step>
   <Step title="Authentication Setup">
     Follow our [authentication guide](/api-reference/authentication) to set up your API key
+    <Note>
+      All API requests require the <code>x-feature-store-id</code> header to select the feature store (collection) for the model. Use your Feature Store ID as the value for this header.
+    </Note>
   </Step>
   <Step title="Make Your First Call">
     Try our [API endpoints](/api-reference/enhance-task) with the provided examples
