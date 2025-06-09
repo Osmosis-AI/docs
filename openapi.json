@@ -283,9 +283,10 @@
     "components": {
         "securitySchemes": {
             "ApiKeyAuth": {
-                "type": "apiKey",
-                "in": "header",
-                "name": "x-api-key"
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+                "description": "Use your API key as a Bearer token in the Authorization header."
             }
         },
         "schemas": {

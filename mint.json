@@ -8,13 +8,13 @@
   "favicon": "/favicon.png",
   "openapi": "/openapi.json",
   "api": {
-    "baseUrl": "https://osmosis.gulp.dev",
+    "baseUrl": "https://api.osmosis.ai",
     "playground": {
       "mode": "show"
     },
     "auth": {
-      "method": "key",
-      "name": "x-api-key"
+      "method": "bearer",
+      "name": "Authorization"
     }
   },
   "colors": {
@@ -29,35 +29,41 @@
   "topbarLinks": [
     {
       "name": "Contact Us",
-      "url": "mailto:founders@gulp.ai"
+      "url": "mailto:founders@osmosis.ai"
     }
   ],
   "tabs": [
     {
-      "name": "Methods Playground",
+      "name": "API Reference",
       "url": "api-reference"
     },
     {
-      "name": "Examples",
-      "url": "examples"
+      "name": "Docs",
+      "url": "docs"
     }
   ],
   "navigation": [
     {
-      "group": "Getting Started",
-      "pages": [
-        "introduction",
-        "quickstart/authentication"
-      ]
+      "group": "Get Started",
+      "pages": ["overview", "quickstart"]
     },
     {
       "group": "API Reference",
       "pages": [
-        "api-reference/overview",
+        "api-reference/introduction",
+        "api-reference/authentication",
         "api-reference/enhance-task",
         "api-reference/store-knowledge",
         "api-reference/delete-by-intent",
         "api-reference/knowledge-status"
+      ]
+    },
+    {
+      "group": "Data Sources",
+      "pages": [
+        "guides/data-sources/s3",
+        "guides/data-sources/kinesis",
+        "guides/data-sources/kafka"
       ]
     }
   ]

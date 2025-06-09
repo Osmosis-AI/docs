@@ -1,0 +1,86 @@
+---
+title: "Amazon S3"
+description: "Connect your Amazon S3 bucket as a data source in Osmosis"
+---
+
+# Connect Amazon S3
+
+Bring your AWS S3 data into Osmosis in just a few easy steps.
+
+<Steps>
+  <Step title="1. Gather S3 Bucket Details">
+    Start by creating a new Amazon S3 bucket or choosing an existing one.
+
+    <Note>
+      Make a note of your **Bucket Name**, **AWS Region**, and the **File Path** to the data you want to access.
+    </Note>
+
+    - **Manage Buckets**: [AWS S3 Console](https://s3.console.aws.amazon.com/s3/home)
+    - **Learn More**: [Official AWS S3 Documentation](https://docs.aws.amazon.com/AmazonS3/latest/userguide/creating-bucket.html)
+  </Step>
+
+  <Step title="2. Set Up IAM Permissions">
+    Attach this policy to your IAM user or role to enable Osmosis access. This policy allows Osmosis to list the bucket contents and retrieve objects.
+
+    - **Manage IAM Users**: [AWS IAM Console](https://console.aws.amazon.com/iam/home#/users)
+
+    ```json IAM Policy Example
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "s3:GetObject",
+            "s3:ListBucket"
+          ],
+          "Resource": [
+            "arn:aws:s3:::<your-bucket-name>",
+            "arn:aws:s3:::<your-bucket-name>/<your-path>/*"
+          ]
+        }
+      ]
+    }
+    ```
+    <Tip>
+      Replace `<your-bucket-name>` and `<your-path>` with your actual bucket and file path details. If your files are located at the root of the bucket, use `/*` instead of `<your-path>/*` in the second resource.
+    </Tip>
+    <Info>
+      For optimal security, ensure your IAM permissions are precisely scoped to only the resources Osmosis needs to access.
+    </Info> 
+  </Step>
+
+  <Step title="3. Obtain AWS Credentials">
+    You will need an **Access Key ID** and **Secret Access Key** from an IAM user with the required S3 policy attached.
+    
+    You can generate these credentials in the [AWS IAM Console](https://console.aws.amazon.com/iam/home#/users).
+  </Step>
+
+  <Step title="4. Configure S3 in Osmosis">
+    Finally, enter the collected details into the Osmosis new data source form:
+
+    - **Bucket Name**
+    - **AWS Region**
+    - **File Path**
+    - **AWS Access Key ID**
+    - **AWS Secret Access Key**
+    
+    Once entered, click **Connect Data Source** to verify your credentials and bucket accessibility.
+  </Step>
+</Steps>
+
+<AccordionGroup>
+<Accordion title="Troubleshooting: Access Denied Errors">
+<Warning>
+If you encounter an <strong>Access denied to S3 resource</strong> error when connecting your S3 bucket, double-check the following:
+</Warning>
+
+- **Bucket Region**: Ensure the AWS region you entered matches the region where your S3 bucket is deployed.
+- **IAM Permissions**: Confirm your IAM user or role has the correct policy attached, with all required S3 actions and the correct bucket ARN(s).
+- **Bucket Name**: Verify that the bucket name is spelled correctly and matches exactly (including case sensitivity).
+- **File Path**: Make sure the file path in your policy matches the location of your data in the bucket.
+- **Credentials**: Ensure you are using the correct Access Key ID and Secret Access Key for the IAM user with the attached policy.
+
+</Accordion>
+</AccordionGroup>
+

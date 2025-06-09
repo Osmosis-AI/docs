@@ -1,0 +1,83 @@
+---
+title: "Amazon Kinesis"
+description: "Connect your Amazon Kinesis stream as a data source in Osmosis"
+---
+
+# Connect AWS Kinesis
+
+Seamlessly stream real-time AWS Kinesis data into Osmosis.
+
+<Steps>
+  <Step title="1. Gather Kinesis Stream Details">
+    To begin, you need to either create a new Kinesis data stream or select an existing one in your AWS account.
+
+    <Note>
+      Make a note of your **Kinesis Stream Name** and **AWS Region**.
+    </Note>
+
+    - **Manage Streams**: [AWS Kinesis Console](https://console.aws.amazon.com/kinesis/home)
+    - **Learn More**: [Official AWS Kinesis Documentation](https://docs.aws.amazon.com/streams/latest/dev/introduction.html)
+  </Step>
+
+  <Step title="2. Set Up IAM Permissions">
+    Attach the following policy to your IAM user or role to grant Osmosis the necessary permissions to read from your stream.
+
+    - **Manage IAM Users**: [AWS IAM Console](https://console.aws.amazon.com/iam/home#/users)
+
+    ```json IAM Policy Example
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "kinesis:GetRecords",
+            "kinesis:GetShardIterator",
+            "kinesis:DescribeStream",
+            "kinesis:DescribeStreamSummary",
+            "kinesis:ListStreams"
+          ],
+          "Resource": "arn:aws:kinesis:<region>:<account-id>:stream/<your-stream-name>"
+        }
+      ]
+    }
+    ```
+    <Tip>
+      Replace `<region>`, `<account-id>`, and `<your-stream-name>` with your actual stream ARN. You can find it in the Kinesis Console "Data stream summary" section.
+    </Tip>
+    <Info>
+      For optimal security, ensure your IAM permissions are precisely scoped to only the resources Osmosis needs to access.
+    </Info>
+  </Step>
+
+  <Step title="3. Obtain AWS Credentials">
+    You will need an **Access Key ID** and **Secret Access Key** from an IAM user with the policy attached.
+    
+    You can generate these credentials in the [AWS IAM Console](https://console.aws.amazon.com/iam/home#/users).
+  </Step>
+
+  <Step title="4. Configure Kinesis in Osmosis">
+    Finally, enter the collected details into the Osmosis new data source form:
+
+    - **AWS Region**
+    - **Kinesis Stream Name**
+    - **AWS Access Key ID**
+    - **AWS Secret Access Key**
+    
+    Once entered, click **Connect Data Source** to verify that everything is configured correctly.
+  </Step>
+</Steps>
+
+<AccordionGroup>
+<Accordion title="Troubleshooting: Access Denied Errors">
+<Warning>
+If you encounter an <strong>Access denied to Kinesis resource</strong> error when connecting your Kinesis stream, double-check the following:
+</Warning>
+
+- **Stream Region**: Ensure the AWS region you entered matches the region where your Kinesis stream is deployed.
+- **IAM Permissions**: Confirm your IAM user or role has the correct policy attached, with all required Kinesis actions and the correct stream ARN.
+- **Stream Name**: Verify that the stream name is spelled correctly and matches exactly (including case sensitivity).
+- **Credentials**: Make sure you are using the correct Access Key ID and Secret Access Key for the IAM user with the attached policy.
+
+</Accordion>
+</AccordionGroup> 

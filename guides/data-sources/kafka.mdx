@@ -1,0 +1,34 @@
+---
+title: "Apache Kafka"
+description: "Connect your Apache Kafka topic as a data source in Osmosis"
+---
+
+# Connect Apache Kafka
+
+Effortlessly connect Apache Kafka streams to Osmosis.
+
+<Steps>
+  <Step title="1. Gather Kafka Connection Details">
+    To begin, you will need to identify your Kafka cluster's connection details.
+    
+    - **Bootstrap Servers**: The list of host/port pairs for establishing the initial connection.
+    - **Topics**: The names of the Kafka topics you want to stream data from.
+    
+    For help, refer to the [Official Apache Kafka Documentation](https://kafka.apache.org/documentation/).
+  </Step>
+
+  <Step title="2. Configure Kafka in Osmosis">
+    Enter the collected details into the Osmosis new data source form:
+
+    - **Bootstrap Servers** (e.g., `broker1:9092,broker2:9092`)
+    - **Kafka Topics** (comma-separated)
+    - **Consumer Group ID** (a unique identifier, e.g., `osmosis-consumers`)
+    - **Authentication Details** (if applicable)
+    
+    Once entered, click **Connect Data Source** to verify connectivity.
+  </Step>
+</Steps>
+
+<Info>
+  Osmosis supports secure Kafka connections (SASL/SSL). For guidance on secure configurations, consult the [official Kafka Security documentation](https://kafka.apache.org/documentation/#security).
+</Info>

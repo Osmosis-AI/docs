@@ -12,7 +12,7 @@ If your agent spawns sub sub agents, each sub task agent should also call this e
 ## Base URL
 
 ```bash
-POST https://osmosis.gulp.dev/store_knowledge
+POST https://api.osmosis.ai/store_knowledge
 ```
 
 ## Authentication
@@ -21,8 +21,8 @@ POST https://osmosis.gulp.dev/store_knowledge
   <HeaderParameter name="Content-Type" required type="string">
     application/json
   </HeaderParameter>
-  <HeaderParameter name="x-api-key" required type="string">
-    Your API key
+  <HeaderParameter name="Authorization" required type="string">
+    Bearer YOUR_API_KEY
   </HeaderParameter>
 </RequestHeader>
 
@@ -30,7 +30,7 @@ POST https://osmosis.gulp.dev/store_knowledge
 
 ### Root Level Parameters
 
-<ParamField body="tenant_id" type="string" required initialValue="your-api-key">
+<ParamField body="tenant_id" type="string" required initialValue="YOUR_API_KEY">
   Unique identifier that corresponds to a dedicated recommendation collection, enabling sub-tenancy isolation for different agentic workflows
 </ParamField>
 
@@ -97,11 +97,11 @@ Each turn in the `turns` array represents a single interaction step and contains
 <CodeGroup>
 
 ```bash cURL
-curl -X POST https://osmosis.gulp.dev/store_knowledge \
+curl -X POST https://api.osmosis.ai/store_knowledge \
   -H "Content-Type: application/json" \
-  -H "x-api-key: your-api-key" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "tenant_id": "your-api-key",
+    "tenant_id": "YOUR_API_KEY",
     "query": "Find and purchase a red Nike running shoe in size 10",
     "turns": [
       {
@@ -160,10 +160,10 @@ async function storeKnowledge() {
     }
   };
 
-  const response = await axios.post('https://osmosis.gulp.dev/store_knowledge', payload, {
+  const response = await axios.post('https://api.osmosis.ai/store_knowledge', payload, {
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': apiKey
+      'Authorization': `Bearer ${apiKey}`
     }
   });
   
@@ -212,11 +212,11 @@ def store_knowledge():
     }
     
     response = requests.post(
-        "https://osmosis.gulp.dev/store_knowledge",
+        "https://api.osmosis.ai/store_knowledge",
         json=payload,
         headers={
             "Content-Type": "application/json",
-            "x-api-key": api_key
+            "Authorization": f"Bearer {api_key}"
         }
     )
     
@@ -305,13 +305,13 @@ func storeKnowledge() ([]byte, error) {
         return nil, err
     }
 
-    req, err := http.NewRequest("POST", "https://osmosis.gulp.dev/store_knowledge", bytes.NewBuffer(jsonData))
+    req, err := http.NewRequest("POST", "https://api.osmosis.ai/store_knowledge", bytes.NewBuffer(jsonData))
     if err != nil {
         return nil, err
     }
 
     req.Header.Set("Content-Type", "application/json")
-    req.Header.Set("x-api-key", apiKey)
+    req.Header.Set("Authorization", "Bearer "+apiKey)
 
     client := &http.Client{}
     resp, err := client.Do(req)

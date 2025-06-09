@@ -12,7 +12,7 @@ If your agent spawns sub sub agents, each sub task should also call this endpoin
 ## Base URL
 
 ```bash
-POST https://osmosis.gulp.dev/enhance_task
+POST https://api.osmosis.ai/enhance_task
 ```
 
 ## Authentication
@@ -21,8 +21,8 @@ POST https://osmosis.gulp.dev/enhance_task
   <HeaderParameter name="Content-Type" required type="string">
     application/json
   </HeaderParameter>
-  <HeaderParameter name="x-api-key" required type="string">
-    Your API key
+  <HeaderParameter name="Authorization" required type="string">
+    Bearer YOUR_API_KEY
   </HeaderParameter>
 </RequestHeader>
 
@@ -47,9 +47,9 @@ POST https://osmosis.gulp.dev/enhance_task
 <CodeGroup>
 
 ```bash cURL
-curl -X POST https://osmosis.gulp.dev/enhance_task \
+curl -X POST https://api.osmosis.ai/enhance_task \
   -H "Content-Type: application/json" \
-  -H "x-api-key: your-api-key" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "tenant_id": "api_key",
     "input_text": "Process refund request for damaged item",
@@ -69,10 +69,10 @@ async function enhanceTask() {
     agent_type: 'support_agent'
   };
 
-  const response = await axios.post('https://osmosis.gulp.dev/enhance_task', payload, {
+  const response = await axios.post('https://api.osmosis.ai/enhance_task', payload, {
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': apiKey
+      'Authorization': `Bearer ${apiKey}`
     }
   });
   
@@ -94,11 +94,11 @@ def enhance_task():
     }
     
     response = requests.post(
-        "https://osmosis.gulp.dev/enhance_task",
+        "https://api.osmosis.ai/enhance_task",
         json=payload,
         headers={
             "Content-Type": "application/json",
-            "x-api-key": api_key
+            "Authorization": f"Bearer {api_key}"
         }
     )
     
@@ -135,13 +135,13 @@ func enhanceTask() ([]byte, error) {
         return nil, err
     }
 
-    req, err := http.NewRequest("POST", "https://osmosis.gulp.dev/enhance_task", bytes.NewBuffer(jsonData))
+    req, err := http.NewRequest("POST", "https://api.osmosis.ai/enhance_task", bytes.NewBuffer(jsonData))
     if err != nil {
         return nil, err
     }
 
     req.Header.Set("Content-Type", "application/json")
-    req.Header.Set("x-api-key", apiKey)
+    req.Header.Set("Authorization", "Bearer "+apiKey)
 
     client := &http.Client{}
     resp, err := client.Do(req)

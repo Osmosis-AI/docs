@@ -1,0 +1,57 @@
+---
+title: 'Introduction'
+description: 'Learn how to use the Osmosis API to enhance your AI agents'
+---
+
+<Note>
+  **Early Access** - Osmosis API is currently in early access. [Contact us](mailto:founders@osmosis.ai) to get started!
+</Note>
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Contextual Enhancement" icon="brain">
+    Enrich your agent's responses with relevant past knowledge using our powerful vector similarity search
+  </Card>
+  <Card title="Knowledge Storage" icon="database">
+    Store and learn from interaction histories with efficient data management
+  </Card>
+  <Card title="Continuous Learning" icon="rotate">
+    Improve agent responses based on past successes using our advanced learning algorithms
+  </Card>
+  <Card title="Smart Cleanup" icon="broom">
+    Remove outdated or irrelevant knowledge automatically with intent-based deletion
+  </Card>
+</CardGroup>
+
+## Core Endpoints
+
+The API provides three main endpoints to power your AI agents:
+
+<Steps>
+  <Step title="/enhance_task">
+    Enhance an agent's query with relevant knowledge from past interactions. Perfect for improving response quality and maintaining context.
+    ```bash
+    POST https://api.osmosis.ai/enhance_task
+    ```
+  </Step>
+  <Step title="/store_knowledge">
+    Store conversation or event history for future reference. Builds your knowledge base over time.
+    ```bash
+    POST https://api.osmosis.ai/store_knowledge
+    ```
+  </Step>
+  <Step title="/delete_by_intent">
+    Delete stale or irrelevant knowledge using intent matching. Keeps your knowledge base clean and relevant.
+    ```bash
+    POST https://api.osmosis.ai/delete_by_intent
+    ```
+  </Step>
+  <Step title="/knowledge_status/{job_id}">
+    Check the status of a knowledge upload job. Monitor progress and handle completion.
+    ```bash
+    GET https://api.osmosis.ai/knowledge_status/{job_id}
+    ```
+  </Step>
+</Steps>
+

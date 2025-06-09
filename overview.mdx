@@ -1,0 +1,77 @@
+---
+title: "Osmosis Developer Platform"
+sidebarTitle: "Overview"
+description: "Build smarter AI agents that learn and improve from every interaction."
+---
+
+The Osmosis API helps you build smarter, more context-aware AI agents. Our API provides essential building blocks for creating agents that learn from past interactions and make better decisions over time.
+
+<Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Explore our comprehensive API documentation.
+</Card>
+
+<CardGroup>
+  <Card title="Create an API key" icon="key" href="/quickstart">
+    Create an API key to authenticate your requests.
+  </Card>
+  <Card title="Connect Data Sources" icon="database" href="/guides/data-sources/s3">
+    Connect data from S3, Kinesis, and Kafka.
+  </Card>
+</CardGroup>
+
+## API Endpoints
+
+<CardGroup cols={1}>
+  <Card title="Task Enhancement" icon="wand-magic-sparkles" href="/api-reference/enhance-task">
+    `POST /enhance_task` Enriches tasks with relevant knowledge and context from past interactions.
+  </Card>
+
+  <Card title="Knowledge Storage" icon="database" href="/api-reference/store-knowledge">
+    `POST /store_knowledge` Stores agent interactions and experiences for future reference.
+  </Card>
+
+  <Card title="Data Management" icon="sliders" href="/api-reference/delete-by-intent">
+    `POST /delete_by_intent` Manages your knowledge base by removing outdated or irrelevant entries.
+  </Card>
+
+  <Card title="Job Status" icon="clock" href="/api-reference/knowledge-status">
+    `GET /knowledge_status/{job_id}` Check the status of knowledge upload jobs.
+  </Card>
+</CardGroup>
+
+## Why Use Osmosis?
+
+AI agent builders often face the challenge of continually adding more edge case handling prompts to their agents.
+
+However, with Osmosis, you can now attach these edge cases directly to the input prompt while keeping the system prompt clean. This is achieved using the [enhance_task](/api-reference/enhance-task) endpoint, which attaches edge cases learned from past interactions that are stored through the [store_knowledge](/api-reference/store-knowledge) endpoint.
+
+Here's how Osmosis helps:
+
+<AccordionGroup>
+  <Accordion title="Knowledge Storage & Retrieval">
+    - **Vector-Based Storage**: Efficiently store and retrieve interaction history
+    - **Semantic Search**: Find relevant past experiences using advanced similarity matching
+    - **Structured Data**: Maintain organized, queryable knowledge bases
+  </Accordion>
+  <Accordion title="Response Enhancement">
+    - **Context Enrichment**: Add relevant past knowledge to current queries
+    - **Pattern Recognition**: Learn from successful interactions
+    - **Adaptive Responses**: Improve output quality over time
+  </Accordion>
+  <Accordion title="Knowledge Management">
+    - **Smart Cleanup**: Automatically remove outdated information
+    - **Intent Matching**: Delete irrelevant data based on semantic understanding
+    - **Data Freshness**: Keep your knowledge base current and accurate
+  </Accordion>
+</AccordionGroup>
+
+## Start Building
+
+<CardGroup cols={2}>
+  <Card title="Getting Started" icon="rocket" href="/api-reference/authentication">
+    Set up authentication and make your first API call
+  </Card>
+  <Card title="API Examples" icon="code" href="/api-reference/enhance-task">
+    View detailed examples for each endpoint
+  </Card>
+</CardGroup>
