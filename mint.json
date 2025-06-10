@@ -34,10 +34,6 @@
   ],
   "tabs": [
     {
-      "name": "API Reference",
-      "url": "api-reference"
-    },
-    {
       "name": "Docs",
       "url": "docs"
     }
@@ -46,17 +42,6 @@
     {
       "group": "Get Started",
       "pages": ["overview", "quickstart"]
-    },
-    {
-      "group": "API Reference",
-      "pages": [
-        "api-reference/introduction",
-        "api-reference/authentication",
-        "api-reference/enhance-task",
-        "api-reference/store-knowledge",
-        "api-reference/delete-by-intent",
-        "api-reference/knowledge-status"
-      ]
     },
     {
       "group": "Data Sources",

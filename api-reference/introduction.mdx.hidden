@@ -32,25 +32,25 @@ The API provides three main endpoints to power your AI agents:
   <Step title="/enhance_task">
     Enhance an agent's query with relevant knowledge from past interactions. Perfect for improving response quality and maintaining context.
     ```bash
-    POST https://api.osmosis.ai/enhance_task
+    POST https://osmosis.gulp.dev/enhance_task
     ```
   </Step>
   <Step title="/store_knowledge">
     Store conversation or event history for future reference. Builds your knowledge base over time.
     ```bash
-    POST https://api.osmosis.ai/store_knowledge
+    POST https://osmosis.gulp.dev/store_knowledge
     ```
   </Step>
   <Step title="/delete_by_intent">
     Delete stale or irrelevant knowledge using intent matching. Keeps your knowledge base clean and relevant.
     ```bash
-    POST https://api.osmosis.ai/delete_by_intent
+    POST https://osmosis.gulp.dev/delete_by_intent
     ```
   </Step>
   <Step title="/knowledge_status/{job_id}">
     Check the status of a knowledge upload job. Monitor progress and handle completion.
     ```bash
-    GET https://api.osmosis.ai/knowledge_status/{job_id}
+    GET https://osmosis.gulp.dev/knowledge_status/{job_id}
     ```
   </Step>
 </Steps>
