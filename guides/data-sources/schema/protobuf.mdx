@@ -1,0 +1,306 @@
+---
+title: "Protobuf"
+description: "Learn how to configure Proto definition for your data sources"
+---
+
+Protobuf (Protocol Buffers) is Google's language-neutral, platform-neutral, extensible mechanism for serializing structured data. This guide covers proto3 syntax with practical examples for data source integration.
+
+<Info>
+This guide follows the [Protocol Buffers proto3 specification](https://protobuf.dev/programming-guides/proto3/), providing comprehensive coverage of syntax, data types, and best practices.
+</Info>
+
+## Schema Configuration
+
+### File Structure
+
+Choose the appropriate protobuf syntax version for your use case:
+
+<Tabs>
+<Tab title="Proto3 (Recommended)">
+```proto user_events.proto
+syntax = "proto3";
+
+package com.example.analytics;
+
+option java_package = "com.example.analytics";
+option java_outer_classname = "UserEventsProtos";
+
+message UserEvent {
+  string event_id = 1;
+  string user_id = 2;
+  string event_type = 3;
+  int64 timestamp = 4;
+  
+  // Nested message
+  UserContext context = 5;
+  
+  // Collections
+  repeated string tags = 6;
+  map<string, string> properties = 7;
+  
+  // Optional fields
+  optional string description = 8;
+}
+
+message UserContext {
+  string device_type = 1;
+  string app_version = 2;
+  optional string location = 3;
+}
+```
+
+<Check>
+Recommended for new projects. Simpler syntax, better defaults, and native JSON support.
+</Check>
+</Tab>
+
+<Tab title="Proto2 (Legacy)">
+```proto user_events.proto
+syntax = "proto2";
+
+package com.example.analytics;
+
+option java_package = "com.example.analytics";
+option java_outer_classname = "UserEventsProtos";
+
+message UserEvent {
+  required string event_id = 1;
+  required string user_id = 2;
+  required string event_type = 3;
+  required int64 timestamp = 4;
+  
+  // Nested message
+  optional UserContext context = 5;
+  
+  // Collections
+  repeated string tags = 6;
+  
+  // Optional fields with explicit declaration
+  optional string description = 7;
+}
+
+message UserContext {
+  required string device_type = 1;
+  required string app_version = 2;
+  optional string location = 3;
+}
+```
+
+<Warning>
+Legacy syntax. Use only if maintaining existing proto2 schemas.
+</Warning>
+</Tab>
+
+<Tab title="Editions (Future)">
+```proto user_events.proto
+edition = "2023";
+
+package com.example.analytics;
+
+option java_package = "com.example.analytics";
+option java_outer_classname = "UserEventsProtos";
+
+message UserEvent {
+  string event_id = 1;
+  string user_id = 2;
+  string event_type = 3;
+  int64 timestamp = 4;
+  
+  // Nested message
+  UserContext context = 5;
+  
+  // Collections
+  repeated string tags = 6;
+  map<string, string> properties = 7;
+  
+  // Optional fields
+  string description = 8 [features.field_presence = EXPLICIT];
+}
+
+message UserContext {
+  string device_type = 1;
+  string app_version = 2;
+  string location = 3 [features.field_presence = EXPLICIT];
+}
+```
+
+<Info>
+Future-oriented approach with fine-grained feature control. Use for new projects requiring advanced features.
+</Info>
+</Tab>
+</Tabs>
+
+<ParamField path="syntax" type="string" required>
+Must be the first non-empty, non-comment line. Always use `"proto3"` for new projects.
+</ParamField>
+
+<ParamField path="package" type="string">
+Logical namespace identifier to prevent naming conflicts. This is just a string - Osmosis doesn't need to access any external packages. Use descriptive names such as `mycompany.userdata` or `analytics.events`.
+</ParamField>
+
+<Note>
+Osmosis reads protobuf-serialized data using your message definitions. Choose the syntax version that matches your existing protobuf infrastructure.
+</Note>
+
+## Message Definitions and Data Types
+
+### Basic Message Structure
+
+<Steps>
+<Step title="Define your message">
+    Messages are the fundamental data structures, similar to classes or structs.
+    
+    ```proto
+    message User {
+      string name = 1;
+      int32 id = 2;
+      string email = 3;
+      bool active = 4;
+    }
+    ```
+</Step>
+
+<Step title="Assign field numbers">
+    Each field must have a unique number that identifies it in the binary format.
+    
+    <Warning>
+    Field numbers **cannot be changed** once in production. Use 1-15 for frequently used fields (1 byte encoding).
+    </Warning>
+</Step>
+
+<Step title="Choose appropriate data types">
+    Select from the supported scalar types based on your data requirements.
+</Step>
+</Steps>
+
+### Supported Data Types
+
+Protocol Buffers support various scalar and complex data types:
+
+<ParamField header="string">
+Text data including names, descriptions, and identifiers.
+</ParamField>
+
+<ParamField header="int32 / int64">
+Signed integers for numeric values and identifiers.
+</ParamField>
+
+<ParamField header="bool">
+Boolean true/false values.
+</ParamField>
+
+<ParamField header="double">
+Floating-point numbers for decimal values.
+</ParamField>
+
+<ParamField header="bytes">
+Binary data for files, images, or encrypted content.
+</ParamField>
+
+<ParamField header="repeated">
+Arrays/lists of values. Example: `repeated string tags`
+</ParamField>
+
+<ParamField header="map">
+Key-value mappings. Example: `map<string, string> metadata`
+</ParamField>
+
+<ParamField header="enum">
+Predefined set of named constants.
+</ParamField>
+
+<Info>
+For complete details on all data types, validation rules, and advanced features, refer to the [official Protocol Buffers documentation](https://protobuf.dev/programming-guides/proto3/).
+</Info>
+
+### Example with Mixed Data Types
+
+```proto Complete Example
+syntax = "proto3";
+
+package com.example.analytics;
+
+message UserEvent {
+  // Identifiers
+  string event_id = 1;
+  string user_id = 2;
+  
+  // Event data
+  string event_type = 3;
+  int64 timestamp = 4;
+  
+  // Optional metadata
+  map<string, string> properties = 5;
+  repeated string tags = 6;
+  
+  // User context
+  UserContext context = 7;
+}
+
+message UserContext {
+  string device_type = 1;
+  string app_version = 2;
+  optional string location = 3;
+}
+```
+
+## Best Practices
+
+### Naming Conventions
+
+<Steps>
+<Step title="Use consistent naming">
+    Follow established protobuf naming conventions for better maintainability.
+    
+    ```proto
+    // Package names: lowercase with dots
+    package com.company.product.v1;
+    
+    // Message names: PascalCase
+    message UserProfile {
+      // Field names: snake_case
+      string first_name = 1;
+      int32 user_id = 2;
+    }
+    
+    // Enum names: PascalCase with PREFIX
+    enum UserStatus {
+      USER_STATUS_UNSPECIFIED = 0;
+      USER_STATUS_ACTIVE = 1;
+      USER_STATUS_SUSPENDED = 2;
+    }
+    ```
+</Step>
+
+<Step title="Organize fields logically">
+    Group related fields and use appropriate field number ranges.
+    
+    ```proto
+    message OptimizedMessage {
+      // Core identifiers (1-5)
+      string id = 1;
+      string name = 2;
+      
+      // Status fields (6-10)
+      Status status = 6;
+      int64 created_at = 7;
+      
+      // Optional/large fields (11+)
+      optional string description = 11;
+      repeated string tags = 12;
+    }
+    ```
+</Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+<Card title="Feature Pipelines" icon="wrench" href="/guides/feature-pipelines">
+    Learn how to transform and enrich your Protobuf data in feature pipelines.
+</Card>
+
+<Card title="Training" icon="split" href="/guides/training">
+    Learn how to train your data sources with Osmosis.
+</Card>
+</CardGroup> 

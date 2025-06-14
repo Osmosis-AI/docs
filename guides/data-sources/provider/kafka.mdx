@@ -1,0 +1,43 @@
+---
+title: "Apache Kafka"
+description: "Connect your Apache Kafka topic as a data source in Osmosis"
+---
+
+# Connect Apache Kafka
+
+Effortlessly connect Apache Kafka streams to Osmosis.
+
+<Steps>
+  <Step title="1. Gather Kafka Host Information">
+    To begin, you need to either create a new Kafka topic or select an existing one in your Kafka deployment.
+    
+    Determine which type of Kafka deployment you are using:
+
+    - [**Confluent Cloud**](https://www.confluent.io/confluent-cloud) – Managed Kafka hosted by Confluent.io
+    - [**AWS MSK**](https://aws.amazon.com/msk) – Amazon Managed Streaming for Apache Kafka
+    - [**Self-hosted Kafka Cluster**](https://kafka.apache.org) – Your own Kafka running on VMs, containers, or on-premises
+
+  </Step>
+
+  <Step title="2. Set Up Kafka Authentication and Security">
+    Osmosis supports secure Kafka connections using TLS with SASL authentication. Follow the instructions below to set up authentication and security for your Kafka deployment:
+
+    - **Confluent Cloud**: [Manage API Keys](https://docs.confluent.io/cloud/current/security/authenticate/workload-identities/service-accounts/api-keys/manage-api-keys.html)
+    - **AWS MSK**: [Set up SASL/SCRAM authentication](https://docs.aws.amazon.com/msk/latest/developerguide/msk-password-tutorial.html)
+    - **Self-hosted Kafka Cluster**: [Set up SASL/SCRAM authentication](https://kafka.apache.org/documentation/#security)
+
+  </Step>
+
+  <Step title="3. Configure Kafka in Osmosis">
+    Finally, enter the collected details into the Osmosis [new data source form](https://platform.osmosis.ai/data-sources/new):
+    
+    - **Bootstrap Servers** (e.g., `broker1.example.com:9092,broker2.example.com:9092`)
+    - **Kafka Topics** (comma-separated)
+    - **Consumer Group ID** (a unique identifier, e.g., `osmosis-consumers`)
+    - **Username and Password**
+    - *(Optional)* **CA Certificate** – required if using a self-signed or internal TLS certificate
+
+    Once entered, click **Connect Data Source** to verify that everything is configured correctly.
+  </Step>
+</Steps>
+

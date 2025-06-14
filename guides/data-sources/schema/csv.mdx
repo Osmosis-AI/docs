@@ -1,0 +1,263 @@
+---
+title: "CSV"
+description: "Learn how to configure CSV headers for your data sources"
+---
+
+CSV (Comma-Separated Values) is a simple, plain-text format for tabular data. This guide covers CSV format configuration with practical examples and implementation guidance for data source integration.
+
+## CSV Format Options
+
+When setting up your data source, you can choose between two different CSV data formats:
+
+<Tabs>
+<Tab title="CSV with Headers">
+Use `CSV with Headers` when your CSV files include header rows that define column names.
+
+```csv example.csv
+user_id,email,created_at,status
+123,user@example.com,2024-01-15T10:30:00Z,active
+456,admin@example.com,2024-01-16T14:22:15Z,pending
+```
+
+<Check>
+Recommended for most use cases as it provides self-documenting data structure.
+</Check>
+</Tab>
+
+<Tab title="CSV (without Headers)">
+Use `CSV` when your CSV files contain only data rows without headers.
+
+```csv example.csv
+123,user@example.com,2024-01-15T10:30:00Z,active
+456,admin@example.com,2024-01-16T14:22:15Z,pending
+```
+
+<Warning>
+Requires careful column order mapping in your schema configuration.
+</Warning>
+</Tab>
+</Tabs>
+
+## CSV Header Configuration
+
+### Interactive Column Builder
+
+When configuring your CSV data source, you can dynamically build your column schema using the column builder interface:
+
+<Steps>
+<Step title="Add column name">
+    Enter descriptive column names using snake_case format (e.g., `user_id`, `email_address`).
+    
+    <Tip>
+    Use clear, descriptive names that indicate the data they contain.
+    </Tip>
+</Step>
+
+<Step title="Select data type">
+    Choose the appropriate data type from the dropdown:
+    - `String`: For text data
+    - `Integer`: For whole numbers
+    - `Double`: For decimal numbers
+    - `Boolean`: For true/false values
+    - `DateTime`: For timestamps with date and time
+    - `Date`: For date-only values
+    - `Time`: For time-only values
+</Step>
+
+<Step title="Add more columns">
+    Click "Add Another" to dynamically add additional columns to your schema.
+    
+    <Warning>
+    At least one column is required when using CSV format. The form validation will prevent submission with an empty column list.
+    </Warning>
+</Step>
+</Steps>
+
+### Naming Conventions
+
+Headers should be clear, consistent, and follow a predictable naming convention:
+
+<Steps>
+<Step title="Use descriptive names">
+    Choose headers that clearly indicate the data they contain.
+    
+    ```csv
+    // Good
+    user_email,registration_date,account_status
+    
+    // Avoid
+    email,date,status
+    ```
+</Step>
+
+<Step title="Maintain consistency">
+    Use consistent naming patterns across all your CSV files.
+    
+    <CodeGroup>
+    ```csv Snake Case (Recommended)
+    user_id,first_name,last_name,email_address
+    ```
+    
+    ```csv Camel Case
+    userId,firstName,lastName,emailAddress
+    ```
+    </CodeGroup>
+</Step>
+
+<Step title="Avoid special characters">
+    Keep headers simple to prevent parsing issues.
+    
+    <Warning>
+    Avoid spaces, special characters, and reserved keywords in column names.
+    </Warning>
+</Step>
+</Steps>
+
+## Data Types
+
+### Supported Data Types
+
+Your CSV configuration supports the following data types:
+
+<ParamField header="String">
+Text data including names, descriptions, and identifiers. Default format for most CSV data.
+</ParamField>
+
+<ParamField header="Integer">
+Whole numbers without decimal points. Examples: `1`, `100`, `-5`
+</ParamField>
+
+<ParamField header="Double">
+Decimal numbers with floating-point precision. Examples: `1.25`, `99.99`, `-0.5`
+</ParamField>
+
+<ParamField header="Boolean">
+True/false values. Use consistent format: `true/false` or `1/0`
+</ParamField>
+
+<ParamField header="DateTime">
+Combined date and time values. Use ISO 8601 format: `2024-01-15T10:30:00Z`
+</ParamField>
+
+<ParamField header="Date">
+Date-only values without time component. Format: `2024-01-15`
+</ParamField>
+
+<ParamField header="Time">
+Time-only values without date component. Format: `10:30:00` or `14:22:15`
+</ParamField>
+
+### Example with Mixed Data Types
+
+Here's an example CSV using different data types supported by the system:
+
+```csv users.csv
+user_id,full_name,email,age,registration_date,last_login,daily_active_time,is_premium,account_balance
+123,"John Doe",john@example.com,28,2024-01-15,2024-01-15T10:30:00Z,02:15:30,true,1250.50
+456,"Jane Smith",jane@example.com,32,2024-01-16,2024-01-16T14:22:15Z,01:45:00,false,0.00
+789,"Bob Johnson",bob@example.com,45,2024-01-17,2024-01-17T09:15:30Z,03:20:45,true,750.25
+```
+
+**Column breakdown:**
+- `user_id` (Integer): Unique identifier
+- `full_name` (String): User's display name  
+- `email` (String): Contact information
+- `age` (Integer): User's age in years
+- `registration_date` (Date): Account creation date
+- `last_login` (DateTime): Last login timestamp
+- `daily_active_time` (Time): Daily usage duration
+- `is_premium` (Boolean): Premium account status
+- `account_balance` (Double): Account balance
+
+## Best Practices
+
+### Column Matching and Ordering
+
+<Warning>
+Column configuration requirements vary based on your CSV format selection.
+</Warning>
+
+<Tabs>
+<Tab title="CSV with Headers">
+When using `CSV with Headers` data format, you must:
+- Choose which columns to include in your schema configuration
+- Define column names that match your CSV header names exactly
+
+```csv
+// CSV file headers (all available columns)
+user_id,email_address,first_name,last_name,account_status,created_date,updated_date
+
+// Schema configuration (selective - only needed columns)
+user_id (Integer)
+email_address (String)  
+account_status (String)
+created_date (DateTime)
+```
+
+<Note>
+You can skip columns you don't need, but included column names must match exactly (case-sensitive).
+</Note>
+</Tab>
+
+<Tab title="CSV (without Headers)">
+When using `CSV` data format, you must:
+- Enter columns in the exact order they appear in your CSV file (left to right)
+- Include all columns from your CSV file - do not skip columns
+
+```csv
+// CSV file (columns 1-4)
+123,user@example.com,active,2024-01-15T10:30:00Z
+
+// Schema configuration (in order)
+1. user_id (Integer)
+2. email (String)  
+3. status (String)
+4. created_at (DateTime)
+```
+
+<Warning>
+Skipping columns or incorrect ordering will cause data to be mapped to wrong fields.
+</Warning>
+</Tab>
+</Tabs>
+
+### Handling Special Cases
+
+<AccordionGroup>
+<Accordion title="Empty Values">
+Handle null or empty values consistently:
+
+```csv
+id,name,email,phone
+1,"John Doe",john@example.com,+1234567890
+2,"Jane Smith",jane@example.com,
+3,"Bob Johnson",,+0987654321
+```
+
+<Note>
+Empty values can be represented as empty strings or explicit null values depending on your processing requirements.
+</Note>
+</Accordion>
+
+<Accordion title="Text with Commas">
+Wrap text containing commas in quotes:
+
+```csv
+id,name,description
+1,"John Doe","Software Engineer, Team Lead"
+2,"Jane Smith","Designer, UX Specialist"
+```
+</Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+<Card title="Feature Pipelines" icon="wrench" href="/guides/feature-pipelines">
+    Learn how to transform and enrich your CSV data in feature pipelines.
+</Card>
+
+<Card title="Training" icon="split" href="/guides/training">
+    Learn how to train your data sources with Osmosis.
+</Card>
+</CardGroup>

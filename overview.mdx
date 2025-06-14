@@ -6,20 +6,22 @@ description: "Build smarter AI agents that learn and improve from every interact
 
 The Osmosis API helps you build smarter, more context-aware AI agents. Our API provides essential building blocks for creating agents that learn from past interactions and make better decisions over time.
 
-<Card title="API Reference" icon="code" href="/api-reference/introduction">
+## Get Started
+
+{/* <Card title="API Reference" icon="code" href="/api-reference/introduction">
     Explore our comprehensive API documentation.
-</Card>
+</Card> */}
 
 <CardGroup>
   <Card title="Create an API key" icon="key" href="/quickstart">
     Create an API key to authenticate your requests.
   </Card>
-  <Card title="Connect Data Sources" icon="database" href="/guides/data-sources/s3">
+  <Card title="Connect Data Sources" icon="database" href="/guides/data-sources">
     Connect data from S3, Kinesis, and Kafka.
   </Card>
 </CardGroup>
 
-## API Endpoints
+{/* ## API Endpoints
 
 <CardGroup cols={1}>
   <Card title="Task Enhancement" icon="wand-magic-sparkles" href="/api-reference/enhance-task">
@@ -37,13 +39,13 @@ The Osmosis API helps you build smarter, more context-aware AI agents. Our API p
   <Card title="Job Status" icon="clock" href="/api-reference/knowledge-status">
     `GET /knowledge_status/{job_id}` Check the status of knowledge upload jobs.
   </Card>
-</CardGroup>
+</CardGroup> */}
 
 ## Why Use Osmosis?
 
 AI agent builders often face the challenge of continually adding more edge case handling prompts to their agents.
 
-However, with Osmosis, you can now attach these edge cases directly to the input prompt while keeping the system prompt clean. This is achieved using the [enhance_task](/api-reference/enhance-task) endpoint, which attaches edge cases learned from past interactions that are stored through the [store_knowledge](/api-reference/store-knowledge) endpoint.
+However, with Osmosis, you can now attach these edge cases directly to the input prompt while keeping the system prompt clean. {/* This is achieved using the [enhance_task](/api-reference/enhance-task) endpoint, which attaches edge cases learned from past interactions that are stored through the [store_knowledge](/api-reference/store-knowledge) endpoint. */}
 
 Here's how Osmosis helps:
 
@@ -64,18 +66,3 @@ Here's how Osmosis helps:
     - **Data Freshness**: Keep your knowledge base current and accurate
   </Accordion>
 </AccordionGroup>
-
-## Start Building
-
-<CardGroup cols={2}>
-  <Card title="Getting Started" icon="rocket" href="/api-reference/authentication">
-    Set up authentication and make your first API call
-  </Card>
-  <Card title="API Examples" icon="code" href="/api-reference/enhance-task">
-    View detailed examples for each endpoint
-  </Card>
-</CardGroup>
-
-<Note>
-  All API requests require the <code>x-feature-store-id</code> header to select the feature store (collection) for the model. Use your Feature Store ID as the value for this header.
-</Note>

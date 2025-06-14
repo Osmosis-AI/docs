@@ -1,0 +1,303 @@
+---
+title: "JSON"
+description: "Learn how to configure JSON schema for your data sources"
+---
+
+JSON Schema is a powerful tool for validating the structure and content of JSON data. This guide covers practical JSON Schema configuration for data source integration.
+
+<Info>
+This guide follows the [JSON Schema 2020-12 specification](https://json-schema.org/draft/2020-12/release-notes), the latest stable version.
+</Info>
+
+<Tip>
+If you're using Pydantic models in Python, you can automatically generate JSON schemas using `Model.model_json_schema()` instead of writing schemas manually. See the [Generate Schemas from Pydantic](#generate-schemas-from-pydantic) section below.
+</Tip>
+
+## Schema Format Options
+
+When setting up your JSON data source, you can choose between different validation approaches:
+
+<Tabs>
+<Tab title="Structured Schema">
+Use structured schemas when you need precise validation with defined properties and types.
+
+```json Basic User Schema
+{
+  "title": "User",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique user identifier"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "age": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 150
+    }
+  },
+  "required": ["id", "name", "email"],
+  "additionalProperties": false
+}
+```
+
+<Check>
+Recommended for structured data sources where validation is critical for model training.
+</Check>
+</Tab>
+
+<Tab title="Flexible Schema">
+Use flexible schemas when your JSON structure varies or you need looser validation.
+
+```json Flexible Schema
+{
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "id": { "type": "string" },
+    "data": {}
+  },
+  "required": ["id"]
+}
+```
+
+<Warning>
+Less strict validation may allow invalid data through your pipeline.
+</Warning>
+</Tab>
+</Tabs>
+
+## Schema Configuration
+
+### Required Schema Properties
+
+<Steps>
+<Step title="Add schema metadata">
+    Include title and description for your schema.
+    
+    ```json
+    {
+      "title": "User Activity Events",
+      "description": "Schema for user activity event logs collected from web and mobile applications."
+    }
+    ```
+</Step>
+
+<Step title="Define validation rules">
+    Set type constraints and validation rules appropriate for your data.
+    
+    ```json
+    {
+      "type": "object",
+      "properties": { /* your properties */ },
+      "required": ["essential_field"],
+      "additionalProperties": false
+    }
+    ```
+</Step>
+</Steps>
+
+<Note>
+You don't need to include `$schema` or `$id` properties in your schema configuration - these are handled automatically by Osmosis.
+</Note>
+
+## Data Types
+
+### Supported Data Types
+
+JSON Schema supports the following data types with specific validation keywords for constraining values:
+
+<ParamField header="string">
+Text data including names, descriptions, and identifiers. Supports validation keywords like `minLength`, `maxLength`, `pattern`, and `format`.
+</ParamField>
+
+<ParamField header="integer">
+Whole numbers without decimal points. Supports validation keywords like `minimum`, `maximum`, `multipleOf`.
+</ParamField>
+
+<ParamField header="number">
+Numeric values including integers and floating-point numbers. Supports the same validation keywords as integer type.
+</ParamField>
+
+<ParamField header="boolean">
+True/false values. No additional validation keywords available.
+</ParamField>
+
+<ParamField header="array">
+Ordered lists of values. Supports validation keywords like `items`, `minItems`, `maxItems`, `uniqueItems`.
+</ParamField>
+
+<ParamField header="object">
+Key-value pairs representing structured data. Supports `properties`, `required`, `additionalProperties`, and other object-specific keywords.
+</ParamField>
+
+<ParamField header="null">
+Represents null/empty values. Often used in combination with other types using `anyOf` or `oneOf`.
+</ParamField>
+
+<Info>
+For complete details on validation keywords and advanced features, refer to the [official JSON Schema documentation](https://json-schema.org/understanding-json-schema/reference/type).
+</Info>
+
+### Example with Mixed Data Types
+
+Here's a practical example using multiple data types:
+
+```json User Profile Schema
+{
+  "title": "User Profile",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier"
+    },
+    "personal": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "email": { "type": "string", "format": "email" },
+        "age": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["name", "email"]
+    },
+    "preferences": {
+      "type": "object",
+      "properties": {
+        "notifications": { "type": "boolean" },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "uniqueItems": true
+        }
+      }
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": ["id", "personal", "created_at"],
+  "additionalProperties": false
+}
+```
+
+## Best Practices
+
+### Strict vs Flexible Validation
+
+Choose your validation approach based on use case:
+
+**Strict validation** (`"additionalProperties": false`):
+- Use for structured data sources
+- Prevents unexpected fields
+- Ensures data consistency
+
+**Flexible validation** (`"additionalProperties": true`):
+- Use for evolving data formats
+- Allows additional fields
+- Better for data exploration
+
+## Generate Schemas from Pydantic
+
+Generate JSON Schemas from Python data models:
+
+<CodeGroup>
+```python Pydantic Model
+from pydantic import BaseModel, Field
+from datetime import datetime
+from typing import Optional, List
+import json
+
+class User(BaseModel):
+    id: str = Field(..., description="Unique user identifier")
+    name: str = Field(..., min_length=1, max_length=100)
+    email: str = Field(..., description="Valid email address")
+    age: Optional[int] = Field(None, ge=0, le=150)
+    tags: List[str] = Field(default_factory=list)
+    created_at: datetime
+
+# Generate JSON Schema
+schema = User.model_json_schema()
+
+print(json.dumps(schema, indent=2))
+```
+
+```json Generated Schema Output
+{
+  "properties": {
+    "id": {
+      "description": "Unique user identifier",
+      "title": "Id",
+      "type": "string"
+    },
+    "name": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "email": {
+      "description": "Valid email address",
+      "title": "Email",
+      "type": "string"
+    },
+    "age": {
+      "anyOf": [
+        {
+          "maximum": 150,
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Age"
+    },
+    "tags": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Tags",
+      "type": "array"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "email",
+    "created_at"
+  ],
+  "title": "User",
+  "type": "object"
+}
+```
+</CodeGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+<Card title="Feature Pipelines" icon="wrench" href="/guides/feature-pipelines">
+    Learn how to transform and enrich your JSON data in feature pipelines.
+</Card>
+
+<Card title="Training" icon="split" href="/guides/training">
+    Learn how to train your data sources with Osmosis.
+</Card>
+</CardGroup> 

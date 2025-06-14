@@ -41,14 +41,43 @@
   "navigation": [
     {
       "group": "Get Started",
-      "pages": ["overview", "quickstart"]
+      "pages": [
+        "overview",
+        "quickstart"
+      ]
     },
     {
       "group": "Data Sources",
       "pages": [
-        "guides/data-sources/s3",
-        "guides/data-sources/kinesis",
-        "guides/data-sources/kafka"
+        {
+          "group": "Data Source Provider",
+          "pages": [
+            "guides/data-sources/provider/s3",
+            "guides/data-sources/provider/kinesis",
+            "guides/data-sources/provider/kafka"
+          ]
+        },
+        {
+          "group": "Schema Configuration",
+          "pages": [
+            "guides/data-sources/schema/csv",
+            "guides/data-sources/schema/json",
+            "guides/data-sources/schema/protobuf"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "Data Transformations",
+      "pages": [
+        "guides/feature-pipelines",
+        "guides/feature-stores"
+      ]
+    },
+    {
+      "group": "Training",
+      "pages": [
+        "guides/training/overview"
       ]
     }
   ]
