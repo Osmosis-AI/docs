@@ -6,18 +6,6 @@
     "light": "/logo/logo.svg"
   },
   "favicon": "/favicon.svg",
-  "openapi": "/openapi.json",
-  "api": {
-    "baseUrl": "https://osmosis.gulp.dev",
-    "playground": {
-      "mode": "hide"
-    },
-    "auth": {
-      "method": "key",
-      "name": "x-api-key"
-    },
-    "maintainOrder": true
-  },
   "colors": {
     "primary": "#707FDD",
     "light": "#8892E3",
@@ -34,10 +22,6 @@
     }
   ],
   "tabs": [
-    {
-      "name": "Examples",
-      "url": "examples"
-    },
     {
       "name": "Python SDK",
       "url": "python-sdk"
