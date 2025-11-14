@@ -49,6 +49,15 @@
       "pages": [
         "introduction"
       ]
+    },
+    {
+      "group": "Python SDK",
+      "pages": [
+        "python-sdk/introduction",
+        "python-sdk/installation",
+        "python-sdk/quickstart",
+        "python-sdk/api-reference"
+      ]
     }
   ]
 }

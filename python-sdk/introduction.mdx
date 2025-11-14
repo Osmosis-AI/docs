@@ -1,0 +1,62 @@
+---
+title: 'Python SDK Introduction'
+description: 'Get started with the Osmosis Python SDK'
+---
+
+# Osmosis Python SDK
+
+The Osmosis Python SDK provides a convenient way to interact with the Osmosis Agent Improvement API from your Python applications.
+
+## Installation
+
+Install the SDK using pip:
+
+```bash
+pip install osmosis-sdk
+```
+
+## Quick Start
+
+```python
+from osmosis import OsmosisClient
+
+# Initialize the client with your API key
+client = OsmosisClient(api_key="your-api-key")
+
+# Enhance a task with relevant knowledge
+response = client.enhance_task(
+    tenant_id="your-tenant-id",
+    query="How do I reset a user's password?",
+    context={"user_role": "admin"}
+)
+
+print(response.enhanced_query)
+```
+
+## Features
+
+<CardGroup cols={2}>
+  <Card title="Task Enhancement" icon="brain">
+    Enrich your agent's tasks with relevant past knowledge
+  </Card>
+  <Card title="Knowledge Storage" icon="database">
+    Store and manage interaction histories
+  </Card>
+  <Card title="Async Support" icon="bolt">
+    Full async/await support for high-performance applications
+  </Card>
+  <Card title="Type Safety" icon="shield">
+    Complete type hints for better IDE support
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/python-sdk/installation">
+    Learn how to install and configure the SDK
+  </Card>
+  <Card title="API Reference" icon="code" href="/python-sdk/api-reference">
+    Explore the complete API documentation
+  </Card>
+</CardGroup>

@@ -1,0 +1,74 @@
+---
+title: 'Installation'
+description: 'Install and configure the Osmosis Python SDK'
+---
+
+# Installation
+
+## Requirements
+
+- Python 3.8 or higher
+- pip package manager
+
+## Install via pip
+
+```bash
+pip install osmosis-sdk
+```
+
+## Install from source
+
+```bash
+git clone https://github.com/osmosis/python-sdk.git
+cd python-sdk
+pip install -e .
+```
+
+## Configuration
+
+### API Key Setup
+
+Set your API key as an environment variable:
+
+```bash
+export OSMOSIS_API_KEY="your-api-key"
+```
+
+Or pass it directly when initializing the client:
+
+```python
+from osmosis import OsmosisClient
+
+client = OsmosisClient(api_key="your-api-key")
+```
+
+### Custom Base URL
+
+If you're using a self-hosted instance:
+
+```python
+client = OsmosisClient(
+    api_key="your-api-key",
+    base_url="https://your-instance.example.com"
+)
+```
+
+## Verify Installation
+
+Test your installation:
+
+```python
+from osmosis import OsmosisClient
+
+client = OsmosisClient(api_key="your-api-key")
+
+# Test connection
+response = client.health_check()
+print("Connected successfully!")
+```
+
+## Next Steps
+
+<Card title="Quick Start Guide" icon="rocket" href="/python-sdk/quickstart">
+  Start building with the Osmosis SDK
+</Card>

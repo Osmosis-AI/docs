@@ -1,0 +1,114 @@
+---
+title: 'Quick Start'
+description: 'Get up and running with the Osmosis Python SDK'
+---
+
+# Quick Start Guide
+
+## Basic Usage
+
+### Initialize the Client
+
+```python
+from osmosis import OsmosisClient
+
+client = OsmosisClient(api_key="your-api-key")
+```
+
+### Enhance a Task
+
+Enhance your agent's task with relevant past knowledge:
+
+```python
+response = client.enhance_task(
+    tenant_id="your-tenant-id",
+    query="How do I process a refund?",
+    context={
+        "user_role": "customer_service",
+        "department": "support"
+    }
+)
+
+print(response.enhanced_query)
+print(response.recommendations)
+```
+
+### Store Knowledge
+
+Store successful interactions for future reference:
+
+```python
+client.store_knowledge(
+    tenant_id="your-tenant-id",
+    input_text="How do I process a refund?",
+    output_text="To process a refund: 1) Verify the order, 2) Check refund policy...",
+    metadata={
+        "category": "refunds",
+        "success": True
+    }
+)
+```
+
+### Delete Knowledge by Intent
+
+Remove outdated or irrelevant knowledge:
+
+```python
+deleted_count = client.delete_by_intent(
+    tenant_id="your-tenant-id",
+    intent="old refund policy from 2023"
+)
+
+print(f"Deleted {deleted_count} entries")
+```
+
+## Async Usage
+
+For high-performance applications, use the async client:
+
+```python
+import asyncio
+from osmosis import AsyncOsmosisClient
+
+async def main():
+    client = AsyncOsmosisClient(api_key="your-api-key")
+
+    response = await client.enhance_task(
+        tenant_id="your-tenant-id",
+        query="How do I reset a password?",
+        context={}
+    )
+
+    print(response.enhanced_query)
+
+asyncio.run(main())
+```
+
+## Error Handling
+
+```python
+from osmosis import OsmosisClient, OsmosisError
+
+client = OsmosisClient(api_key="your-api-key")
+
+try:
+    response = client.enhance_task(
+        tenant_id="your-tenant-id",
+        query="Sample query",
+        context={}
+    )
+except OsmosisError as e:
+    print(f"Error: {e.message}")
+    print(f"Status code: {e.status_code}")
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="code" href="/python-sdk/api-reference">
+    Explore the complete API documentation
+  </Card>
+  <Card title="Examples" icon="lightbulb" href="/examples">
+    See real-world usage examples
+  </Card>
+</CardGroup>

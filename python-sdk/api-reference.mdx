@@ -1,0 +1,210 @@
+---
+title: 'API Reference'
+description: 'Complete Python SDK API reference'
+---
+
+# API Reference
+
+## OsmosisClient
+
+The main client class for interacting with the Osmosis API.
+
+### Constructor
+
+```python
+OsmosisClient(
+    api_key: str,
+    base_url: str = "https://osmosis.gulp.dev",
+    timeout: int = 30
+)
+```
+
+**Parameters:**
+- `api_key` (str): Your Osmosis API key
+- `base_url` (str, optional): Base URL for the API. Defaults to production URL.
+- `timeout` (int, optional): Request timeout in seconds. Defaults to 30.
+
+### Methods
+
+#### enhance_task()
+
+Enhance a task with relevant past knowledge.
+
+```python
+client.enhance_task(
+    tenant_id: str,
+    query: str,
+    context: dict = None
+) -> EnhanceTaskResponse
+```
+
+**Parameters:**
+- `tenant_id` (str): Your tenant identifier (use your API key)
+- `query` (str): The task or query to enhance
+- `context` (dict, optional): Additional context information
+
+**Returns:**
+- `EnhanceTaskResponse`: Enhanced task with recommendations
+
+**Example:**
+```python
+response = client.enhance_task(
+    tenant_id="your-api-key",
+    query="How do I handle customer complaints?",
+    context={"department": "support"}
+)
+```
+
+#### store_knowledge()
+
+Store interaction knowledge for future retrieval.
+
+```python
+client.store_knowledge(
+    tenant_id: str,
+    input_text: str,
+    output_text: str,
+    metadata: dict = None
+) -> StoreKnowledgeResponse
+```
+
+**Parameters:**
+- `tenant_id` (str): Your tenant identifier
+- `input_text` (str): The input/query text
+- `output_text` (str): The response/output text
+- `metadata` (dict, optional): Additional metadata to store
+
+**Returns:**
+- `StoreKnowledgeResponse`: Storage confirmation with ID
+
+**Example:**
+```python
+response = client.store_knowledge(
+    tenant_id="your-api-key",
+    input_text="How to process returns?",
+    output_text="Step 1: Verify receipt...",
+    metadata={"category": "returns", "success": True}
+)
+```
+
+#### delete_by_intent()
+
+Delete knowledge entries matching a specific intent.
+
+```python
+client.delete_by_intent(
+    tenant_id: str,
+    intent: str
+) -> int
+```
+
+**Parameters:**
+- `tenant_id` (str): Your tenant identifier
+- `intent` (str): The intent to match for deletion
+
+**Returns:**
+- `int`: Number of entries deleted
+
+**Example:**
+```python
+deleted = client.delete_by_intent(
+    tenant_id="your-api-key",
+    intent="outdated pricing information"
+)
+print(f"Deleted {deleted} entries")
+```
+
+#### knowledge_status()
+
+Get the status of stored knowledge for a tenant.
+
+```python
+client.knowledge_status(
+    tenant_id: str
+) -> KnowledgeStatusResponse
+```
+
+**Parameters:**
+- `tenant_id` (str): Your tenant identifier
+
+**Returns:**
+- `KnowledgeStatusResponse`: Status information including count and recent entries
+
+**Example:**
+```python
+status = client.knowledge_status(tenant_id="your-api-key")
+print(f"Total entries: {status.count}")
+```
+
+## AsyncOsmosisClient
+
+Async version of the client for high-performance applications.
+
+```python
+from osmosis import AsyncOsmosisClient
+
+async def example():
+    client = AsyncOsmosisClient(api_key="your-api-key")
+    response = await client.enhance_task(
+        tenant_id="your-api-key",
+        query="Sample query",
+        context={}
+    )
+```
+
+All methods are the same as `OsmosisClient` but are async and should be awaited.
+
+## Response Objects
+
+### EnhanceTaskResponse
+
+```python
+class EnhanceTaskResponse:
+    enhanced_query: str
+    recommendations: List[str]
+    relevant_knowledge: List[dict]
+```
+
+### StoreKnowledgeResponse
+
+```python
+class StoreKnowledgeResponse:
+    id: str
+    success: bool
+    message: str
+```
+
+### KnowledgeStatusResponse
+
+```python
+class KnowledgeStatusResponse:
+    count: int
+    tenant_id: str
+    recent_entries: List[dict]
+```
+
+## Exceptions
+
+### OsmosisError
+
+Base exception for all SDK errors.
+
+```python
+class OsmosisError(Exception):
+    message: str
+    status_code: int
+```
+
+### Authentication Errors
+
+```python
+class AuthenticationError(OsmosisError):
+    pass  # Raised for 401/403 responses
+```
+
+### API Errors
+
+```python
+class APIError(OsmosisError):
+    pass  # Raised for other API errors
+```
