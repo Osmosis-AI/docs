@@ -19,7 +19,8 @@ Decorator for local reward functions that compute scores without API calls.
 def function_name(
     solution_str: str,
     ground_truth: str,
-    extra_info: dict = None
+    extra_info: dict = None,
+    **kwargs
 ) -> float
 ```
 
@@ -27,15 +28,20 @@ def function_name(
 - `solution_str` (str, required) - Text to evaluate
 - `ground_truth` (str, required) - Reference answer
 - `extra_info` (dict, optional) - Additional context
+- `**kwargs` (required) - Future extensibility parameter (must be included even if not used)
 
 **Returns:** `float` - Score value
+
+<Warning>
+**IMPORTANT:** The `**kwargs` parameter is required! Without it, your function will fail during training. Include it even if you don't use it in your function body.
+</Warning>
 
 **Example:**
 ```python
 from osmosis_ai import osmosis_reward
 
 @osmosis_reward
-def exact_match(solution_str: str, ground_truth: str, extra_info: dict = None) -> float:
+def exact_match(solution_str: str, ground_truth: str, extra_info: dict = None, **kwargs) -> float:
     return 1.0 if solution_str.strip() == ground_truth.strip() else 0.0
 ```
 
@@ -51,7 +57,8 @@ Decorator for LLM-based evaluation functions.
 def function_name(
     solution_str: str,
     ground_truth: str | None,
-    extra_info: dict
+    extra_info: dict,
+    **kwargs
 ) -> float
 ```
 
@@ -59,15 +66,20 @@ def function_name(
 - `solution_str` (str, required) - Text to evaluate
 - `ground_truth` (str | None, required) - Reference answer (can be None)
 - `extra_info` (dict, required) - Configuration and context
+- `**kwargs` (required) - Future extensibility parameter (must be included even if not used)
 
 **Returns:** `float` - Score value
+
+<Warning>
+**IMPORTANT:** The `**kwargs` parameter is required! Without it, your function will fail during training. Include it even if you don't use it in your function body.
+</Warning>
 
 **Example:**
 ```python
 from osmosis_ai import osmosis_rubric, evaluate_rubric
 
 @osmosis_rubric
-def quality_check(solution_str: str, ground_truth: str | None, extra_info: dict) -> float:
+def quality_check(solution_str: str, ground_truth: str | None, extra_info: dict, **kwargs) -> float:
     return evaluate_rubric(
         rubric="Evaluate response quality",
         solution_str=solution_str,
@@ -244,12 +256,12 @@ load_dotenv()
 
 # Local reward function
 @osmosis_reward
-def exact_match(solution_str: str, ground_truth: str, extra_info: dict = None) -> float:
+def exact_match(solution_str: str, ground_truth: str, extra_info: dict = None, **kwargs) -> float:
     return 1.0 if solution_str.strip() == ground_truth.strip() else 0.0
 
 # Remote rubric evaluator
 @osmosis_rubric
-def semantic_eval(solution_str: str, ground_truth: str | None, extra_info: dict) -> float:
+def semantic_eval(solution_str: str, ground_truth: str | None, extra_info: dict, **kwargs) -> float:
     return evaluate_rubric(
         rubric="Compare semantic similarity (0-1 scale)",
         solution_str=solution_str,

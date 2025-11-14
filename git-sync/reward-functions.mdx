@@ -51,10 +51,28 @@ def my_reward_function(
     solution_str: str,      # The LLM output to evaluate
     ground_truth: str,      # The expected correct answer
     extra_info: dict = None,  # Additional context/metadata
-    **kwargs                # Future extensibility
+    **kwargs                # Future extensibility (REQUIRED)
 ) -> float:                 # Return score (typically 0.0 to 1.0)
     pass
 ```
+
+<Warning>
+**IMPORTANT: The `**kwargs` parameter is required!**
+
+Even though `**kwargs` is not used in your function body, it **must** be included in the function signature. Without it, your function will fail during training with an error. This parameter is necessary for forward compatibility with the Osmosis platform.
+
+```python
+# ✅ Correct - includes **kwargs
+@osmosis_reward
+def my_reward(solution_str: str, ground_truth: str, extra_info: dict = None, **kwargs) -> float:
+    return 1.0
+
+# ❌ Wrong - missing **kwargs (will cause errors during training!)
+@osmosis_reward
+def my_reward(solution_str: str, ground_truth: str, extra_info: dict = None) -> float:
+    return 1.0
+```
+</Warning>
 
 ## Parameters
 
@@ -93,7 +111,11 @@ extra_info = {
 
 ### `**kwargs`
 
-Captures any additional keyword arguments for future compatibility.
+**Required parameter** that captures any additional keyword arguments for future compatibility with the Osmosis platform.
+
+<Warning>
+This parameter must be included in all `@osmosis_reward` functions, even if you don't use it. Without `**kwargs`, your function will fail during training.
+</Warning>
 
 ## Return Value
 
@@ -276,13 +298,13 @@ Reward functions should always return the same score for the same inputs:
 ```python
 # Good - deterministic
 @osmosis_reward
-def deterministic_reward(solution_str: str, ground_truth: str, **kwargs) -> float:
+def deterministic_reward(solution_str: str, ground_truth: str, extra_info: dict = None, **kwargs) -> float:
     return len(set(solution_str) & set(ground_truth)) / len(set(ground_truth))
 
 # Avoid - non-deterministic
 import random
 @osmosis_reward
-def random_reward(solution_str: str, ground_truth: str, **kwargs) -> float:
+def random_reward(solution_str: str, ground_truth: str, extra_info: dict = None, **kwargs) -> float:
     return random.random()  # Don't do this!
 ```
 
@@ -292,7 +314,7 @@ Keep scores in a consistent range:
 
 ```python
 @osmosis_reward
-def normalized_reward(solution_str: str, ground_truth: str, **kwargs) -> float:
+def normalized_reward(solution_str: str, ground_truth: str, extra_info: dict = None, **kwargs) -> float:
     raw_score = compute_raw_score(solution_str, ground_truth)
     # Normalize to [0, 1]
     return max(0.0, min(1.0, raw_score / max_possible_score))
@@ -304,7 +326,7 @@ Clearly explain how scores are calculated:
 
 ```python
 @osmosis_reward
-def documented_reward(solution_str: str, ground_truth: str, **kwargs) -> float:
+def documented_reward(solution_str: str, ground_truth: str, extra_info: dict = None, **kwargs) -> float:
     """
     Evaluates code quality based on multiple factors.
 
