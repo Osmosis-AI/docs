@@ -1,0 +1,289 @@
+---
+title: 'MCP Tools'
+description: 'Creating MCP tools for Osmosis'
+---
+
+# MCP Tools
+
+MCP (Model Context Protocol) tools are functions decorated with `@mcp.tool()` that extend the capabilities of your AI agents.
+
+## Basic Example
+
+**File: `mcp/tools/math.py`**
+
+```python
+from server import mcp
+
+@mcp.tool()
+def multiply(first_val: float, second_val: float) -> float:
+    '''
+    Calculate the product of two numbers
+
+    Args:
+        first_val: the first value to be multiplied
+        second_val: the second value to be multiplied
+    '''
+    return round(first_val * second_val, 4)
+```
+
+## Key Requirements
+
+### 1. Use the `@mcp.tool()` Decorator
+
+All tools must be decorated with `@mcp.tool()` to be discovered by Osmosis.
+
+### 2. Place in `mcp/tools/` Directory
+
+Organize your tool modules within the `mcp/tools/` directory.
+
+### 3. Include Type Hints
+
+Type hints are required for all parameters and return values:
+
+```python
+def my_tool(input_text: str, count: int) -> list[str]:
+    # Implementation
+    pass
+```
+
+### 4. Add Docstrings
+
+Comprehensive docstrings help the AI understand when and how to use your tool:
+
+```python
+@mcp.tool()
+def search_database(query: str, limit: int = 10) -> list[dict]:
+    """
+    Search the database for matching records
+
+    Args:
+        query: Search query string
+        limit: Maximum number of results to return (default: 10)
+
+    Returns:
+        List of matching records as dictionaries
+    """
+    # Implementation
+    pass
+```
+
+### 5. Export in `__init__.py`
+
+Export your tools in `mcp/tools/__init__.py`:
+
+```python
+from .math import multiply
+from .search import search_database
+
+__all__ = ['multiply', 'search_database']
+```
+
+## Server Setup
+
+### FastMCP Server Configuration
+
+**File: `mcp/server/mcp_server.py`**
+
+```python
+from fastmcp import FastMCP
+
+mcp = FastMCP("OsmosisTools")
+
+@mcp.get("/health")
+async def health():
+    return {"status": "healthy"}
+```
+
+### Entry Point
+
+**File: `mcp/main.py`**
+
+```python
+import argparse
+from server.mcp_server import mcp
+from tools import *  # Import all tools
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--host", default="0.0.0.0")
+    parser.add_argument("--port", type=int, default=8080)
+    args = parser.parse_args()
+
+    mcp.run(transport="http", host=args.host, port=args.port)
+```
+
+## Complete Example
+
+Here's a more complex tool that demonstrates best practices:
+
+```python
+from server import mcp
+from typing import Optional
+import json
+
+@mcp.tool()
+def fetch_user_profile(
+    user_id: str,
+    include_history: bool = False,
+    max_items: Optional[int] = None
+) -> dict:
+    """
+    Fetch a user's profile information from the database
+
+    This tool retrieves user profile data and optionally includes
+    their activity history. Use this when you need to look up
+    information about a specific user.
+
+    Args:
+        user_id: Unique identifier for the user
+        include_history: Whether to include activity history (default: False)
+        max_items: Maximum number of history items to return (optional)
+
+    Returns:
+        Dictionary containing user profile data with keys:
+        - id: User ID
+        - name: User's full name
+        - email: User's email address
+        - history: Activity history (if include_history=True)
+
+    Raises:
+        ValueError: If user_id is not found
+    """
+    # Your implementation here
+    profile = {
+        "id": user_id,
+        "name": "John Doe",
+        "email": "john@example.com"
+    }
+
+    if include_history:
+        history = get_user_history(user_id, max_items)
+        profile["history"] = history
+
+    return profile
+```
+
+## Testing Your Tools
+
+### Local Testing
+
+Start your MCP server locally:
+
+```bash
+python mcp/main.py
+```
+
+Test in another terminal:
+
+```bash
+python mcp/test/test.py
+```
+
+### Unit Tests
+
+Create tests for your tools:
+
+```python
+# tests/test_math.py
+from mcp.tools.math import multiply
+
+def test_multiply():
+    assert multiply(2.0, 3.0) == 6.0
+    assert multiply(0.5, 0.5) == 0.25
+    assert multiply(-2.0, 3.0) == -6.0
+```
+
+## Best Practices
+
+### 1. Single Responsibility
+
+Each tool should do one thing well:
+
+```python
+# Good - focused functionality
+@mcp.tool()
+def calculate_average(numbers: list[float]) -> float:
+    """Calculate the arithmetic mean of a list of numbers"""
+    return sum(numbers) / len(numbers)
+
+# Avoid - doing too much
+@mcp.tool()
+def analyze_data(data: list[float]) -> dict:
+    """Calculate average, median, mode, stddev, and generate charts"""
+    # Too many responsibilities
+    pass
+```
+
+### 2. Clear Naming
+
+Use descriptive, action-oriented names:
+
+```python
+# Good
+@mcp.tool()
+def convert_currency(amount: float, from_code: str, to_code: str) -> float:
+    pass
+
+# Avoid
+@mcp.tool()
+def currency(a: float, f: str, t: str) -> float:
+    pass
+```
+
+### 3. Error Handling
+
+Handle errors gracefully:
+
+```python
+@mcp.tool()
+def divide(numerator: float, denominator: float) -> float:
+    """
+    Divide two numbers
+
+    Args:
+        numerator: The number to be divided
+        denominator: The number to divide by
+
+    Returns:
+        The quotient
+
+    Raises:
+        ValueError: If denominator is zero
+    """
+    if denominator == 0:
+        raise ValueError("Cannot divide by zero")
+    return numerator / denominator
+```
+
+### 4. Use Type Hints Effectively
+
+```python
+from typing import Optional, Union, Literal
+
+@mcp.tool()
+def format_text(
+    text: str,
+    style: Literal["uppercase", "lowercase", "title"] = "title",
+    max_length: Optional[int] = None
+) -> str:
+    """Format text according to specified style"""
+    # Implementation
+    pass
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Reward Functions" icon="trophy" href="/git-sync/reward-functions">
+    Learn about reward functions
+  </Card>
+  <Card title="Setup Guide" icon="rocket" href="/git-sync/setup-guide">
+    Complete setup walkthrough
+  </Card>
+  <Card title="FastMCP Docs" icon="book" href="https://github.com/jlowin/fastmcp">
+    Official FastMCP documentation
+  </Card>
+  <Card title="Example Repo" icon="github" href="https://github.com/Osmosis-AI/osmosis-git-sync-example">
+    See complete examples
+  </Card>
+</CardGroup>

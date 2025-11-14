@@ -1,0 +1,198 @@
+---
+title: 'Quick Start'
+description: 'Get up and running with the Osmosis AI Python SDK in 5 minutes'
+---
+
+# Quick Start Guide
+
+Learn the basics of the Osmosis AI SDK through three progressive examples.
+
+## Prerequisites
+
+```bash
+pip install osmosis-ai
+export OPENAI_API_KEY="sk-..."
+```
+
+## Step 1: Your First Evaluation
+
+Use `evaluate_rubric()` to evaluate text with natural language criteria:
+
+```python
+from osmosis_ai import evaluate_rubric
+
+score = evaluate_rubric(
+    rubric="Evaluate how helpful and clear the response is.",
+    solution_str="You can reset your password by clicking 'Forgot Password' on the login page.",
+    model_info={
+        "provider": "openai",
+        "model": "gpt-5"
+    }
+)
+
+print(f"Score: {score}")  # Output: 0.92
+```
+
+### With Ground Truth
+
+Compare against a reference answer:
+
+```python
+score = evaluate_rubric(
+    rubric="Evaluate how closely the solution matches the ground truth.",
+    solution_str="Paris is the capital of France.",
+    ground_truth="The capital of France is Paris.",
+    model_info={"provider": "openai", "model": "gpt-5"}
+)
+```
+
+### Get Detailed Results
+
+Include explanations with your scores:
+
+```python
+result = evaluate_rubric(
+    rubric="Rate the response quality from 0 to 10.",
+    solution_str="Here's a comprehensive guide...",
+    model_info={"provider": "anthropic", "model": "claude-sonnet-4-5"},
+    score_min=0.0,
+    score_max=10.0,
+    return_details=True
+)
+
+print(f"Score: {result['score']}")
+print(f"Explanation: {result['explanation']}")
+```
+
+## Step 2: Create a Reward Function
+
+For deterministic, local evaluation, use the `@osmosis_reward` decorator:
+
+```python
+from osmosis_ai import osmosis_reward
+
+@osmosis_reward
+def exact_match(solution_str: str, ground_truth: str, extra_info: dict = None) -> float:
+    """Returns 1.0 for exact match, 0.0 otherwise."""
+    return 1.0 if solution_str.strip() == ground_truth.strip() else 0.0
+
+score = exact_match("hello world", "hello world")
+print(f"Match score: {score}")  # 1.0
+```
+
+### Advanced Example: Numeric Tolerance
+
+```python
+@osmosis_reward
+def numeric_match(solution_str: str, ground_truth: str, extra_info: dict = None) -> float:
+    """Match numbers with tolerance."""
+    try:
+        solution_val = float(solution_str.strip())
+        truth_val = float(ground_truth.strip())
+        tolerance = extra_info.get("tolerance", 0.01) if extra_info else 0.01
+
+        return 1.0 if abs(solution_val - truth_val) <= tolerance else 0.0
+    except ValueError:
+        return 0.0
+
+score = numeric_match("3.14159", "3.14", {"tolerance": 0.01})
+print(f"Score: {score}")  # 1.0
+```
+
+## Step 3: Create a Rubric Evaluator
+
+Use `@osmosis_rubric` for LLM-based evaluation functions:
+
+```python
+from osmosis_ai import osmosis_rubric, evaluate_rubric
+
+@osmosis_rubric
+def helpfulness_check(
+    solution_str: str,
+    ground_truth: str | None,
+    extra_info: dict
+) -> float:
+    """Evaluate response helpfulness using an LLM."""
+
+    return evaluate_rubric(
+        rubric="Rate how helpful this response is on a scale of 0-1.",
+        solution_str=solution_str,
+        ground_truth=ground_truth,
+        model_info={
+            "provider": "openai",
+            "model": "gpt-5"
+        }
+    )
+
+score = helpfulness_check(
+    solution_str="Click the reset button in Settings.",
+    ground_truth=None,
+    extra_info={}
+)
+print(f"Helpfulness: {score}")
+```
+
+## Compare Multiple Providers
+
+Evaluate with different LLM providers:
+
+```python
+providers = [
+    {"provider": "openai", "model": "gpt-5"},
+    {"provider": "anthropic", "model": "claude-sonnet-4-5"},
+    {"provider": "gemini", "model": "gemini-2.5-flash"}
+]
+
+rubric = "Evaluate response quality on a scale of 0-10."
+solution = "Here's how to solve your problem..."
+
+for model_info in providers:
+    score = evaluate_rubric(
+        rubric=rubric,
+        solution_str=solution,
+        model_info=model_info,
+        score_min=0.0,
+        score_max=10.0
+    )
+    print(f"{model_info['provider']}: {score}")
+```
+
+## Error Handling
+
+Handle common errors gracefully:
+
+```python
+from osmosis_ai import (
+    evaluate_rubric,
+    MissingAPIKeyError,
+    ProviderRequestError
+)
+
+try:
+    score = evaluate_rubric(
+        rubric="Evaluate quality",
+        solution_str="Sample text",
+        model_info={"provider": "openai", "model": "gpt-5"}
+    )
+except MissingAPIKeyError:
+    print("API key not found. Set: export OPENAI_API_KEY='your-key'")
+except ProviderRequestError as e:
+    print(f"Provider error: {e}")
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="CLI Quick Start" icon="terminal" href="/python-sdk/cli-quickstart">
+    Batch evaluate datasets with the CLI
+  </Card>
+  <Card title="API Reference" icon="book" href="/python-sdk/api-reference">
+    Complete API documentation
+  </Card>
+  <Card title="CLI Reference" icon="terminal" href="/python-sdk/cli-reference">
+    Full CLI command reference
+  </Card>
+  <Card title="Decorators & API" icon="code" href="/python-sdk/decorators-api">
+    Advanced patterns and usage
+  </Card>
+</CardGroup>

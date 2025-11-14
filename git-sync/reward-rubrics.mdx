@@ -1,0 +1,527 @@
+---
+title: 'Reward Rubrics'
+description: 'Using LLMs to evaluate outputs with natural language criteria'
+---
+
+# Reward Rubrics
+
+Reward rubrics leverage LLMs to evaluate outputs using natural language criteria. They use the `@osmosis_rubric` decorator and delegate scoring to a language model based on a rubric description.
+
+## Basic Example
+
+**File: `reward_rubric/reward_rubric_openai.py`**
+
+```python
+from osmosis_ai import evaluate_rubric, osmosis_rubric
+import os
+
+RUBRIC = "Reward based on whether the predicted numerical value matches the ground truth."
+SCORE_MIN = 0.0
+SCORE_MAX = 1.0
+PROVIDER = "openai"
+MODEL = "gpt-5"
+API_KEY = os.getenv("OPENAI_API_KEY")
+
+@osmosis_rubric
+def compute_rubric_score_openai(
+    solution_str: str,
+    ground_truth: str,
+    extra_info: dict,
+    **kwargs
+) -> float:
+    """
+    Delegate rubric scoring to OpenAI GPT model.
+    """
+    model_info = {
+        "provider": PROVIDER,
+        "model": MODEL,
+        "api_key": API_KEY
+    }
+
+    result = evaluate_rubric(
+        rubric=RUBRIC,
+        solution_str=solution_str,
+        model_info=model_info,
+        ground_truth=ground_truth,
+        metadata=extra_info.get("metadata"),
+        score_min=SCORE_MIN,
+        score_max=SCORE_MAX,
+        return_details=False,
+    )
+
+    return float(result)
+```
+
+## Function Signature
+
+All rubric functions must follow this signature:
+
+```python
+@osmosis_rubric
+def my_rubric_function(
+    solution_str: str,      # The LLM output to evaluate
+    ground_truth: str,      # The expected correct answer
+    extra_info: dict,       # Additional context/metadata
+    **kwargs                # Future extensibility
+) -> float:                 # Return score from the rubric
+    pass
+```
+
+## The `evaluate_rubric` Function
+
+The `evaluate_rubric` helper function handles the LLM evaluation:
+
+```python
+from osmosis_ai import evaluate_rubric
+
+score = evaluate_rubric(
+    rubric="Your evaluation criteria here",
+    solution_str="The output to evaluate",
+    model_info={
+        "provider": "openai",
+        "model": "gpt-5",
+        "api_key": "your-api-key"
+    },
+    ground_truth="Expected answer",
+    metadata={"additional": "context"},
+    score_min=0.0,
+    score_max=1.0,
+    return_details=False
+)
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `rubric` | `str` | Natural language description of evaluation criteria |
+| `solution_str` | `str` | The LLM output to evaluate |
+| `model_info` | `dict` | Provider, model, and API key configuration |
+| `ground_truth` | `str` | Expected correct answer or reference |
+| `metadata` | `dict` | Optional additional context |
+| `score_min` | `float` | Minimum score value (default: 0.0) |
+| `score_max` | `float` | Maximum score value (default: 1.0) |
+| `return_details` | `bool` | Whether to return detailed explanation |
+
+## Supported Providers
+
+### OpenAI
+
+```python
+from osmosis_ai import evaluate_rubric, osmosis_rubric
+import os
+
+@osmosis_rubric
+def openai_rubric(
+    solution_str: str,
+    ground_truth: str,
+    extra_info: dict,
+    **kwargs
+) -> float:
+    model_info = {
+        "provider": "openai",
+        "model": "gpt-5",
+        "api_key": os.getenv("OPENAI_API_KEY")
+    }
+
+    return evaluate_rubric(
+        rubric="Evaluate the solution quality...",
+        solution_str=solution_str,
+        model_info=model_info,
+        ground_truth=ground_truth,
+        score_min=0.0,
+        score_max=1.0
+    )
+```
+
+### Anthropic
+
+```python
+@osmosis_rubric
+def anthropic_rubric(
+    solution_str: str,
+    ground_truth: str,
+    extra_info: dict,
+    **kwargs
+) -> float:
+    model_info = {
+        "provider": "anthropic",
+        "model": "claude-sonnet-4-5",
+        "api_key": os.getenv("ANTHROPIC_API_KEY")
+    }
+
+    return evaluate_rubric(
+        rubric="Evaluate based on accuracy and clarity...",
+        solution_str=solution_str,
+        model_info=model_info,
+        ground_truth=ground_truth,
+        score_min=0.0,
+        score_max=1.0
+    )
+```
+
+### Google (Gemini)
+
+```python
+@osmosis_rubric
+def gemini_rubric(
+    solution_str: str,
+    ground_truth: str,
+    extra_info: dict,
+    **kwargs
+) -> float:
+    model_info = {
+        "provider": "google",
+        "model": "gemini-2.0-flash-exp",
+        "api_key": os.getenv("GOOGLE_API_KEY")
+    }
+
+    return evaluate_rubric(
+        rubric="Score the solution quality...",
+        solution_str=solution_str,
+        model_info=model_info,
+        ground_truth=ground_truth,
+        score_min=0.0,
+        score_max=1.0
+    )
+```
+
+### xAI (Grok)
+
+```python
+@osmosis_rubric
+def grok_rubric(
+    solution_str: str,
+    ground_truth: str,
+    extra_info: dict,
+    **kwargs
+) -> float:
+    model_info = {
+        "provider": "xai",
+        "model": "grok-2-1212",
+        "api_key": os.getenv("XAI_API_KEY")
+    }
+
+    return evaluate_rubric(
+        rubric="Assess the correctness...",
+        solution_str=solution_str,
+        model_info=model_info,
+        ground_truth=ground_truth,
+        score_min=0.0,
+        score_max=1.0
+    )
+```
+
+## Writing Effective Rubrics
+
+### Be Specific
+
+```python
+# Vague
+rubric = "Score the answer quality"
+
+# Specific
+rubric = """
+Evaluate the solution based on:
+1. Correctness: Does it match the ground truth? (50%)
+2. Explanation: Is the reasoning clear? (30%)
+3. Formatting: Is it well-structured? (20%)
+
+Return a score from 0.0 to 1.0.
+"""
+```
+
+### Include Scoring Guidelines
+
+```python
+rubric = """
+Score the code quality from 0.0 to 1.0 based on:
+
+- 1.0: Perfect - Correct, efficient, well-documented
+- 0.7-0.9: Good - Correct with minor style issues
+- 0.4-0.6: Fair - Works but has problems
+- 0.0-0.3: Poor - Incorrect or seriously flawed
+
+Ground truth: {ground_truth}
+"""
+```
+
+### Provide Examples
+
+```python
+rubric = """
+Evaluate if the SQL query correctly answers the question.
+
+Examples:
+- "SELECT * FROM users WHERE age > 18" for "users over 18" → 1.0
+- "SELECT name FROM users WHERE age >= 18" for "users over 18" → 0.8 (missing users exactly 18)
+- "SELECT * FROM products" for "users over 18" → 0.0 (wrong table)
+
+Score from 0.0 (completely wrong) to 1.0 (perfect).
+"""
+```
+
+## Advanced Patterns
+
+### Multi-Aspect Evaluation
+
+```python
+@osmosis_rubric
+def comprehensive_rubric(
+    solution_str: str,
+    ground_truth: str,
+    extra_info: dict,
+    **kwargs
+) -> float:
+    rubric = """
+    Evaluate the solution across multiple dimensions:
+
+    1. Factual Accuracy (40%): Is the information correct?
+    2. Completeness (30%): Does it address all parts of the question?
+    3. Clarity (20%): Is it easy to understand?
+    4. Conciseness (10%): Is it appropriately brief?
+
+    Compare against ground truth: {ground_truth}
+
+    Return a weighted average score from 0.0 to 1.0.
+    """
+
+    model_info = {
+        "provider": "anthropic",
+        "model": "claude-sonnet-4-5",
+        "api_key": os.getenv("ANTHROPIC_API_KEY")
+    }
+
+    return evaluate_rubric(
+        rubric=rubric,
+        solution_str=solution_str,
+        model_info=model_info,
+        ground_truth=ground_truth,
+        metadata=extra_info.get("metadata"),
+        score_min=0.0,
+        score_max=1.0
+    )
+```
+
+### Context-Aware Rubric
+
+```python
+@osmosis_rubric
+def context_aware_rubric(
+    solution_str: str,
+    ground_truth: str,
+    extra_info: dict,
+    **kwargs
+) -> float:
+    # Extract context from extra_info
+    difficulty = extra_info.get("metadata", {}).get("difficulty", "medium")
+
+    rubric = f"""
+    Evaluate the solution for a {difficulty} difficulty problem.
+
+    Criteria:
+    - Correctness: Must match ground truth logic
+    - Approach: Should be appropriate for {difficulty} level
+    - Efficiency: Expected to be {get_efficiency_requirement(difficulty)}
+
+    Ground truth: {{ground_truth}}
+
+    Score from 0.0 to 1.0.
+    """
+
+    model_info = {
+        "provider": "openai",
+        "model": "gpt-5",
+        "api_key": os.getenv("OPENAI_API_KEY")
+    }
+
+    return evaluate_rubric(
+        rubric=rubric,
+        solution_str=solution_str,
+        model_info=model_info,
+        ground_truth=ground_truth,
+        metadata=extra_info.get("metadata"),
+        score_min=0.0,
+        score_max=1.0
+    )
+```
+
+### Getting Detailed Feedback
+
+```python
+@osmosis_rubric
+def detailed_rubric(
+    solution_str: str,
+    ground_truth: str,
+    extra_info: dict,
+    **kwargs
+) -> float:
+    rubric = "Evaluate the solution quality and provide detailed feedback."
+
+    model_info = {
+        "provider": "anthropic",
+        "model": "claude-sonnet-4-5",
+        "api_key": os.getenv("ANTHROPIC_API_KEY")
+    }
+
+    # Get detailed result
+    result = evaluate_rubric(
+        rubric=rubric,
+        solution_str=solution_str,
+        model_info=model_info,
+        ground_truth=ground_truth,
+        score_min=0.0,
+        score_max=1.0,
+        return_details=True  # Returns dict with score and explanation
+    )
+
+    # Log the explanation for debugging
+    if isinstance(result, dict):
+        print(f"Score: {result['score']}")
+        print(f"Reasoning: {result['explanation']}")
+        return float(result['score'])
+
+    return float(result)
+```
+
+## Error Handling
+
+Always handle errors gracefully:
+
+```python
+@osmosis_rubric
+def robust_rubric(
+    solution_str: str,
+    ground_truth: str,
+    extra_info: dict,
+    **kwargs
+) -> float:
+    try:
+        model_info = {
+            "provider": "openai",
+            "model": "gpt-5",
+            "api_key": os.getenv("OPENAI_API_KEY")
+        }
+
+        if not model_info["api_key"]:
+            print("Warning: API key not found")
+            return 0.0
+
+        result = evaluate_rubric(
+            rubric="Evaluate solution quality...",
+            solution_str=solution_str,
+            model_info=model_info,
+            ground_truth=ground_truth,
+            score_min=0.0,
+            score_max=1.0
+        )
+
+        return float(result)
+
+    except Exception as e:
+        print(f"Error in rubric evaluation: {e}")
+        return 0.0
+```
+
+## Best Practices
+
+### 1. Keep API Keys Secure
+
+```python
+import os
+
+# Good - use environment variables
+API_KEY = os.getenv("OPENAI_API_KEY")
+
+# Bad - never hardcode keys
+API_KEY = "sk-..."  # Don't do this!
+```
+
+### 2. Choose Appropriate Models
+
+```python
+# Example with OpenAI
+model = "gpt-5"
+
+# Example with Anthropic
+model = "claude-sonnet-4-5"
+```
+
+### 3. Cache API Calls When Possible
+
+```python
+from functools import lru_cache
+
+@lru_cache(maxsize=1000)
+def cached_evaluate(solution_str, ground_truth):
+    return evaluate_rubric(...)
+
+@osmosis_rubric
+def cached_rubric(solution_str, ground_truth, extra_info, **kwargs):
+    return cached_evaluate(solution_str, ground_truth)
+```
+
+### 4. Set Appropriate Score Ranges
+
+```python
+# For binary outcomes
+score_min = 0.0
+score_max = 1.0
+
+# For graded responses
+score_min = 0.0
+score_max = 10.0
+
+# For percentage grades
+score_min = 0.0
+score_max = 100.0
+```
+
+## Testing Locally
+
+Test your rubrics before deployment:
+
+```python
+# test_rubrics.py
+from reward_rubric.reward_rubric_openai import compute_rubric_score_openai
+
+def test_correct_answer():
+    score = compute_rubric_score_openai(
+        solution_str="The answer is 42",
+        ground_truth="42",
+        extra_info={}
+    )
+    print(f"Correct answer score: {score}")
+    assert 0.8 <= score <= 1.0
+
+def test_incorrect_answer():
+    score = compute_rubric_score_openai(
+        solution_str="The answer is 100",
+        ground_truth="42",
+        extra_info={}
+    )
+    print(f"Incorrect answer score: {score}")
+    assert 0.0 <= score <= 0.3
+
+if __name__ == "__main__":
+    test_correct_answer()
+    test_incorrect_answer()
+    print("Tests passed!")
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Setup Guide" icon="rocket" href="/git-sync/setup-guide">
+    Complete setup walkthrough
+  </Card>
+  <Card title="Best Practices" icon="star" href="/git-sync/best-practices">
+    Tips and troubleshooting
+  </Card>
+  <Card title="Python SDK" icon="python" href="/python-sdk/decorators-api#osmosis_rubric">
+    Full API reference
+  </Card>
+  <Card title="Example Repo" icon="github" href="https://github.com/Osmosis-AI/osmosis-git-sync-example">
+    See complete examples
+  </Card>
+</CardGroup>

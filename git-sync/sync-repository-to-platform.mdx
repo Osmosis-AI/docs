@@ -1,0 +1,424 @@
+---
+title: 'Sync Repository to Platform'
+description: 'Step-by-step guide to setting up Git Sync with Osmosis'
+---
+
+# Sync Repository to Platform
+
+This guide walks you through setting up a repository to sync with Osmosis AI platform.
+
+## Prerequisites
+
+- GitHub account
+- Python 3.10 or higher
+- Git installed locally
+- Osmosis AI account
+
+## Step 1: Create Repository Structure
+
+Create the required directory structure:
+
+```bash
+mkdir -p my-osmosis-repo/{mcp/{server,tools,test},reward_fn,reward_rubric}
+cd my-osmosis-repo
+```
+
+Your structure should look like:
+
+```
+my-osmosis-repo/
+├── mcp/
+│   ├── server/
+│   ├── tools/
+│   └── test/
+├── reward_fn/
+└── reward_rubric/
+```
+
+## Step 2: Add Python Dependencies
+
+Create `pyproject.toml` in the repository root:
+
+```toml
+[project]
+name = "my-osmosis-repo"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "osmosis-ai>=0.1.0",
+    "fastmcp>=0.1.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+```
+
+## Step 3: Set Up MCP Server
+
+### Create Server Configuration
+
+**File: `mcp/server/__init__.py`**
+```python
+# Empty file to make server a package
+```
+
+**File: `mcp/server/mcp_server.py`**
+```python
+from fastmcp import FastMCP
+
+mcp = FastMCP("OsmosisTools")
+
+@mcp.get("/health")
+async def health():
+    return {"status": "healthy"}
+```
+
+### Create Entry Point
+
+**File: `mcp/main.py`**
+```python
+import argparse
+from server.mcp_server import mcp
+from tools import *  # Import all tools
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--host", default="0.0.0.0")
+    parser.add_argument("--port", type=int, default=8080)
+    args = parser.parse_args()
+
+    mcp.run(transport="http", host=args.host, port=args.port)
+```
+
+### Add Your First Tool
+
+**File: `mcp/tools/__init__.py`**
+```python
+from .math import multiply
+
+__all__ = ['multiply']
+```
+
+**File: `mcp/tools/math.py`**
+```python
+from server import mcp
+
+@mcp.tool()
+def multiply(first_val: float, second_val: float) -> float:
+    '''
+    Calculate the product of two numbers
+
+    Args:
+        first_val: the first value to be multiplied
+        second_val: the second value to be multiplied
+    '''
+    return round(first_val * second_val, 4)
+```
+
+## Step 4: Add Reward Function
+
+**File: `reward_fn/compute_reward.py`**
+
+```python
+import re
+from osmosis_ai import osmosis_reward
+
+def extract_solution(solution_str):
+    """Extract numerical solution from formatted string"""
+    solution = re.search(r'####\s*([-+]?\d*\.?\d+)', solution_str)
+    if not solution:
+        return None
+    return solution.group(1)
+
+@osmosis_reward
+def numbers_match_reward(
+    solution_str: str,
+    ground_truth: str,
+    extra_info: dict = None,
+    **kwargs
+) -> float:
+    """
+    Reward function that checks if extracted number matches ground truth.
+    Returns 1.0 for exact match, 0.0 otherwise.
+    """
+    extracted = extract_solution(solution_str)
+    try:
+        sol_val = float(extracted)
+        gt_val = float(ground_truth)
+        return 1.0 if abs(gt_val - sol_val) < 1e-7 else 0.0
+    except:
+        return 0.0
+```
+
+## Step 5: Add Reward Rubric
+
+**File: `reward_rubric/reward_rubric_openai.py`**
+
+```python
+from osmosis_ai import evaluate_rubric, osmosis_rubric
+import os
+
+RUBRIC = """
+Evaluate if the predicted numerical value matches the ground truth.
+Return 1.0 for exact match, 0.0 for complete mismatch.
+Consider partial credit for close approximations.
+"""
+SCORE_MIN = 0.0
+SCORE_MAX = 1.0
+PROVIDER = "openai"
+MODEL = "gpt-5"
+API_KEY = os.getenv("OPENAI_API_KEY")
+
+@osmosis_rubric
+def compute_rubric_score_openai(
+    solution_str: str,
+    ground_truth: str,
+    extra_info: dict,
+    **kwargs
+) -> float:
+    """Delegate rubric scoring to OpenAI GPT model"""
+    model_info = {
+        "provider": PROVIDER,
+        "model": MODEL,
+        "api_key": API_KEY
+    }
+
+    result = evaluate_rubric(
+        rubric=RUBRIC,
+        solution_str=solution_str,
+        model_info=model_info,
+        ground_truth=ground_truth,
+        metadata=extra_info.get("metadata"),
+        score_min=SCORE_MIN,
+        score_max=SCORE_MAX,
+        return_details=False,
+    )
+
+    return float(result)
+```
+
+## Step 6: Test Locally
+
+### Install Dependencies
+
+```bash
+# Create virtual environment (optional but recommended)
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install package in development mode
+pip install -e .
+```
+
+### Test MCP Server
+
+Start the server:
+
+```bash
+python mcp/main.py
+```
+
+In another terminal, test the server:
+
+```bash
+curl http://localhost:8080/health
+```
+
+### Test Reward Function
+
+```bash
+python -c "from reward_fn.compute_reward import numbers_match_reward; print(numbers_match_reward('#### 42', '42'))"
+```
+
+Expected output: `1.0`
+
+### Test Reward Rubric
+
+Set your API key:
+
+```bash
+export OPENAI_API_KEY="your-api-key-here"
+```
+
+Test the rubric:
+
+```bash
+python -c "from reward_rubric.reward_rubric_openai import compute_rubric_score_openai; print(compute_rubric_score_openai('The answer is 42', '42', {}))"
+```
+
+## Step 7: Create .gitignore
+
+Create `.gitignore` to exclude sensitive and generated files:
+
+```
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Environment variables
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+```
+
+## Step 8: Push to GitHub
+
+Initialize git and push:
+
+```bash
+# Initialize repository
+git init
+
+# Add all files
+git add .
+
+# Create first commit
+git commit -m "Initial Osmosis sync setup"
+
+# Add remote (replace with your repo URL)
+git remote add origin https://github.com/your-username/my-osmosis-repo.git
+
+# Push to GitHub
+git push -u origin main
+```
+
+## Step 9: Connect to Osmosis Platform
+
+<Info>
+You can connect both **public** and **private** repositories to Osmosis. For private repositories, you'll need to grant Osmosis access through GitHub OAuth or a deploy key.
+</Info>
+
+1. Navigate to your Osmosis workspace settings at [platform.osmosis.ai/settings/workspace/git](https://platform.osmosis.ai/settings/workspace/git)
+2. Click **Connect Repository**
+3. Authorize Osmosis to access your GitHub account
+4. Select your repository from the list
+5. For private repos: Grant necessary permissions when prompted
+6. Click **Connect** and wait for initial sync
+
+## Step 10: Verify Sync
+
+After connecting, Osmosis will automatically sync your repository. Verify the sync:
+
+1. Check the **Git Sync** dashboard to see sync status
+2. Navigate to **MCP Tools** to see your tools listed
+3. Go to **Reward Functions** to verify your reward functions
+4. Check **Reward Rubrics** for your rubric implementations
+
+Sync typically completes within 2-3 minutes.
+
+## Next Steps
+
+### Add More Components
+
+Now that you're set up, you can add more functionality:
+
+<CardGroup cols={2}>
+  <Card title="Add More Tools" icon="wrench" href="/git-sync/mcp-tools">
+    Create additional MCP tools
+  </Card>
+  <Card title="More Reward Functions" icon="trophy" href="/git-sync/reward-functions">
+    Build custom scoring logic
+  </Card>
+</CardGroup>
+
+### Set Up CI/CD
+
+Create `.github/workflows/test.yml`:
+
+```yaml
+name: Test Components
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -e .
+      - name: Test reward functions
+        run: python -m pytest tests/
+```
+
+### Configure Environment Variables
+
+For local development, create `.env` file:
+
+```bash
+# .env (add to .gitignore!)
+OPENAI_API_KEY=your_openai_key
+ANTHROPIC_API_KEY=your_anthropic_key
+GOOGLE_API_KEY=your_google_key
+```
+
+For Osmosis platform:
+1. Go to **Settings → Environment Variables**
+2. Add your API keys securely
+3. Reference them in your rubric functions
+
+## Troubleshooting
+
+### Sync Not Working
+
+- ✅ Verify folder structure matches exactly
+- ✅ Check that decorators are used correctly (`@mcp.tool()`, `@osmosis_reward`, `@osmosis_rubric`)
+- ✅ Ensure `pyproject.toml` includes all required dependencies
+- ✅ Review GitHub webhook settings in repository settings
+
+### Tools Not Appearing
+
+- ✅ Confirm `@mcp.tool()` decorator is present
+- ✅ Check that tools are exported in `mcp/tools/__init__.py`
+- ✅ Verify type hints are included for all parameters
+- ✅ Review Osmosis sync logs for errors
+
+### API Key Issues
+
+- ✅ For local testing, set environment variables properly
+- ✅ For Osmosis platform, configure secrets in dashboard settings
+- ✅ Never commit API keys to version control (use `.gitignore`)
+- ✅ Verify API keys are valid and have proper permissions
+
+### Import Errors
+
+- ✅ Ensure `__init__.py` files exist in all package directories
+- ✅ Check that imports use correct relative paths
+- ✅ Verify all dependencies are installed: `pip install -e .`
+
+## Complete Example
+
+For a complete working example, check out:
+
+<Card title="Example Repository" icon="github" href="https://github.com/Osmosis-AI/osmosis-git-sync-example">
+  Explore the official Osmosis Git Sync example with all components implemented
+</Card>
+
+## Getting Help
+
+Need assistance? Here are your resources:
+
+- **Documentation**: Review the [Best Practices](/git-sync/best-practices) guide
+- **Examples**: Study the [example repository](https://github.com/Osmosis-AI/osmosis-git-sync-example)
+- **Support**: Contact [contact@osmosis.ai](mailto:contact@osmosis.ai)
