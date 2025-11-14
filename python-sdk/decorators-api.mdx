@@ -1,0 +1,343 @@
+---
+title: 'Advanced Usage'
+description: 'Advanced patterns and integration examples for the Osmosis AI SDK'
+---
+
+# Advanced Usage Guide
+
+Learn advanced patterns for integrating the Osmosis AI SDK into your applications.
+
+## Understanding Decorators
+
+### @osmosis_reward vs @osmosis_rubric
+
+**Key Difference**: Parameter requirements
+
+```python
+# @osmosis_reward - extra_info has default value
+@osmosis_reward
+def local_fn(solution_str: str, ground_truth: str, extra_info: dict = None) -> float:
+    return 1.0
+
+# @osmosis_rubric - extra_info is required (no default)
+@osmosis_rubric
+def remote_fn(solution_str: str, ground_truth: str | None, extra_info: dict) -> float:
+    return evaluate_rubric(...)
+```
+
+### Type Enforcement
+
+Both decorators enforce strict signatures at decoration time:
+
+```python
+# ❌ Wrong parameter names
+@osmosis_reward
+def invalid(text: str, reference: str) -> float:
+    return 1.0
+
+# ❌ Missing type hints
+@osmosis_reward
+def invalid(solution_str, ground_truth, extra_info=None):
+    return 1.0
+
+# ❌ Wrong return type
+@osmosis_reward
+def invalid(solution_str: str, ground_truth: str, extra_info: dict = None) -> str:
+    return "score"
+
+# ✅ Correct
+@osmosis_reward
+def valid(solution_str: str, ground_truth: str, extra_info: dict = None) -> float:
+    return 1.0
+```
+
+## Advanced Reward Functions
+
+### Keyword Matching with Weights
+
+```python
+from osmosis_ai import osmosis_reward
+
+@osmosis_reward
+def weighted_keywords(solution_str: str, ground_truth: str, extra_info: dict = None) -> float:
+    """Score based on keyword presence with custom weights."""
+    if not extra_info or "keywords" not in extra_info:
+        return 0.0
+
+    keywords = extra_info["keywords"]
+    weights = extra_info.get("weights", [1.0] * len(keywords))
+
+    solution_lower = solution_str.lower()
+    total_weight = sum(weights)
+    matched_weight = sum(w for kw, w in zip(keywords, weights) if kw.lower() in solution_lower)
+
+    return matched_weight / total_weight if total_weight > 0 else 0.0
+
+# Usage
+score = weighted_keywords(
+    "The solution uses machine learning and AI",
+    "",
+    {"keywords": ["machine learning", "AI", "neural networks"], "weights": [2.0, 1.0, 3.0]}
+)
+```
+
+### Regex Pattern Matching
+
+```python
+import re
+
+@osmosis_reward
+def regex_match(solution_str: str, ground_truth: str, extra_info: dict = None) -> float:
+    """Match using regex patterns."""
+    pattern = extra_info.get("pattern", ".*") if extra_info else ".*"
+
+    if re.search(pattern, solution_str, re.IGNORECASE):
+        return 1.0
+    return 0.0
+
+# Usage
+score = regex_match(
+    "Contact: john@example.com",
+    "",
+    {"pattern": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"}
+)
+```
+
+## Advanced Rubric Patterns
+
+### Multi-Provider Fallback
+
+```python
+from osmosis_ai import osmosis_rubric, evaluate_rubric
+
+@osmosis_rubric
+def fallback_evaluator(solution_str: str, ground_truth: str | None, extra_info: dict) -> float:
+    """Try multiple providers with automatic fallback."""
+
+    providers = [
+        {"provider": "openai", "model": "gpt-5"},
+        {"provider": "anthropic", "model": "claude-sonnet-4-5"},
+        {"provider": "gemini", "model": "gemini-2.5-flash"}
+    ]
+
+    rubric = extra_info.get("rubric", "Evaluate quality on 0-1 scale")
+
+    for model_info in providers:
+        try:
+            return evaluate_rubric(
+                rubric=rubric,
+                solution_str=solution_str,
+                model_info=model_info,
+                ground_truth=ground_truth
+            )
+        except Exception as e:
+            print(f"Failed with {model_info['provider']}: {e}")
+            continue
+
+    return 0.0  # All providers failed
+```
+
+### Custom Score Ranges
+
+```python
+@osmosis_rubric
+def detailed_scoring(solution_str: str, ground_truth: str | None, extra_info: dict) -> float:
+    """Evaluate with custom 0-100 scale."""
+
+    return evaluate_rubric(
+        rubric="Rate from 0 (terrible) to 100 (perfect)",
+        solution_str=solution_str,
+        model_info={"provider": "anthropic", "model": "claude-sonnet-4-5"},
+        score_min=0.0,
+        score_max=100.0,
+        ground_truth=ground_truth
+    )
+```
+
+### Context-Rich Evaluation
+
+```python
+@osmosis_rubric
+def contextual_eval(solution_str: str, ground_truth: str | None, extra_info: dict) -> float:
+    """Evaluate with rich context from extra_info."""
+
+    return evaluate_rubric(
+        rubric="Evaluate if response appropriately addresses the user's question",
+        solution_str=solution_str,
+        ground_truth=ground_truth,
+        original_input=extra_info.get("original_input"),
+        metadata={
+            "user_level": extra_info.get("user_level", "beginner"),
+            "platform": extra_info.get("platform", "web"),
+            "category": extra_info.get("category")
+        },
+        model_info={"provider": "openai", "model": "gpt-5"}
+    )
+```
+
+## Integration Patterns
+
+### Flask API
+
+```python
+from flask import Flask, request, jsonify
+from osmosis_ai import osmosis_rubric, evaluate_rubric
+
+app = Flask(__name__)
+
+@osmosis_rubric
+def quality_check(solution_str: str, ground_truth: str | None, extra_info: dict) -> float:
+    return evaluate_rubric(
+        rubric="Evaluate response quality and helpfulness",
+        solution_str=solution_str,
+        model_info={"provider": "openai", "model": "gpt-5"},
+        ground_truth=ground_truth
+    )
+
+@app.route('/evaluate', methods=['POST'])
+def evaluate():
+    data = request.json
+    score = quality_check(
+        solution_str=data['text'],
+        ground_truth=data.get('reference'),
+        extra_info=data.get('context', {})
+    )
+    return jsonify({"score": score})
+
+if __name__ == '__main__':
+    app.run()
+```
+
+### Async Batch Processing
+
+```python
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+from osmosis_ai import evaluate_rubric
+
+async def evaluate_async(solution_str: str, rubric: str) -> float:
+    """Async wrapper for evaluate_rubric."""
+    loop = asyncio.get_event_loop()
+    with ThreadPoolExecutor() as executor:
+        score = await loop.run_in_executor(
+            executor,
+            evaluate_rubric,
+            rubric,
+            solution_str,
+            {"provider": "openai", "model": "gpt-5"}
+        )
+    return score
+
+async def evaluate_batch(texts: list[str], rubric: str) -> list[float]:
+    """Evaluate multiple texts concurrently."""
+    tasks = [evaluate_async(text, rubric) for text in texts]
+    return await asyncio.gather(*tasks)
+
+# Usage
+texts = ["Response 1", "Response 2", "Response 3"]
+scores = asyncio.run(evaluate_batch(texts, "Evaluate quality"))
+```
+
+### Logging and Monitoring
+
+```python
+import logging
+from osmosis_ai import evaluate_rubric
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+def evaluate_with_logging(solution_str: str, rubric: str) -> float:
+    """Evaluate with detailed logging."""
+    logger.info(f"Evaluating: {solution_str[:50]}...")
+
+    try:
+        result = evaluate_rubric(
+            rubric=rubric,
+            solution_str=solution_str,
+            model_info={"provider": "openai", "model": "gpt-5"},
+            return_details=True
+        )
+
+        logger.info(f"Score: {result['score']}")
+        logger.debug(f"Explanation: {result['explanation']}")
+
+        return result['score']
+    except Exception as e:
+        logger.error(f"Evaluation failed: {e}")
+        raise
+```
+
+## Best Practices
+
+### When to Use Each Decorator
+
+**Use @osmosis_reward:**
+- Deterministic evaluation (exact match, regex)
+- No API calls needed
+- Fast, local computation
+- Simple scoring rules
+
+**Use @osmosis_rubric:**
+- Subjective evaluation (helpfulness, tone)
+- Semantic understanding required
+- Nuanced judgment needed
+- Natural language criteria
+
+### Error Handling
+
+```python
+from osmosis_ai import evaluate_rubric, MissingAPIKeyError, ProviderRequestError
+
+def safe_evaluate(solution_str: str) -> float:
+    """Evaluate with comprehensive error handling."""
+    try:
+        return evaluate_rubric(
+            rubric="Evaluate quality",
+            solution_str=solution_str,
+            model_info={"provider": "openai", "model": "gpt-5"}
+        )
+    except MissingAPIKeyError:
+        logger.error("API key not set")
+        return 0.0
+    except ProviderRequestError as e:
+        logger.error(f"Provider error: {e}")
+        return 0.0
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        return 0.0
+```
+
+### API Key Management
+
+```python
+# ✅ Good: Use environment variables
+import os
+model_info = {
+    "provider": "openai",
+    "model": "gpt-5",
+    "api_key_env": "OPENAI_API_KEY"
+}
+
+# ✅ Good: Load from .env
+from dotenv import load_dotenv
+load_dotenv()
+
+# ❌ Bad: Hardcode keys
+model_info = {
+    "provider": "openai",
+    "model": "gpt-5",
+    "api_key": "sk-..."  # Never do this!
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="book" href="/python-sdk/api-reference">
+    Complete API documentation
+  </Card>
+  <Card title="CLI Reference" icon="terminal" href="/python-sdk/cli-reference">
+    Batch evaluation with CLI
+  </Card>
+</CardGroup>

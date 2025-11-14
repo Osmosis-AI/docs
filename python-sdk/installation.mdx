@@ -1,74 +1,104 @@
 ---
 title: 'Installation'
-description: 'Install and configure the Osmosis Python SDK'
+description: 'Install and configure the Osmosis AI Python SDK'
 ---
 
 # Installation
 
 ## Requirements
 
-- Python 3.8 or higher
+- Python 3.9 or higher
 - pip package manager
 
 ## Install via pip
 
 ```bash
-pip install osmosis-sdk
+pip install osmosis-ai
 ```
 
-## Install from source
+This installs both the Python library and the CLI tool.
+
+## Set Up API Keys
+
+Configure API keys for the LLM providers you'll use:
 
 ```bash
-git clone https://github.com/osmosis/python-sdk.git
-cd python-sdk
-pip install -e .
+# OpenAI
+export OPENAI_API_KEY="sk-..."
+
+# Anthropic (Claude)
+export ANTHROPIC_API_KEY="sk-ant-..."
+
+# Google Gemini
+export GOOGLE_API_KEY="..."
 ```
 
-## Configuration
+<Tip>
+You only need API keys for the providers you'll use. The SDK supports OpenAI, Anthropic, Gemini, xAI, OpenRouter, and Cerebras.
+</Tip>
 
-### API Key Setup
+### Using .env Files
 
-Set your API key as an environment variable:
+Create a `.env` file in your project:
 
 ```bash
-export OSMOSIS_API_KEY="your-api-key"
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-Or pass it directly when initializing the client:
+Load it in your code:
 
 ```python
-from osmosis import OsmosisClient
-
-client = OsmosisClient(api_key="your-api-key")
-```
-
-### Custom Base URL
-
-If you're using a self-hosted instance:
-
-```python
-client = OsmosisClient(
-    api_key="your-api-key",
-    base_url="https://your-instance.example.com"
-)
+from dotenv import load_dotenv
+load_dotenv()
 ```
 
 ## Verify Installation
 
-Test your installation:
+Test the Python SDK:
 
 ```python
-from osmosis import OsmosisClient
+from osmosis_ai import osmosis_reward
 
-client = OsmosisClient(api_key="your-api-key")
+@osmosis_reward
+def test_fn(solution_str: str, ground_truth: str, extra_info: dict = None) -> float:
+    return 1.0
 
-# Test connection
-response = client.health_check()
-print("Connected successfully!")
+print(test_fn("hello", "hello"))  # Output: 1.0
+```
+
+Test the CLI:
+
+```bash
+osmosis --help
+```
+
+## Troubleshooting
+
+**Import Error**: Make sure you installed `osmosis-ai` (not `osmosis-sdk`)
+```bash
+pip install osmosis-ai
+```
+
+**CLI Not Found**: Reinstall and verify PATH
+```bash
+pip install --force-reinstall osmosis-ai
+which osmosis
+```
+
+**API Key Error**: Verify environment variables are set
+```python
+import os
+print(os.getenv("OPENAI_API_KEY"))
 ```
 
 ## Next Steps
 
-<Card title="Quick Start Guide" icon="rocket" href="/python-sdk/quickstart">
-  Start building with the Osmosis SDK
-</Card>
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/python-sdk/quickstart">
+    Your first evaluation in 5 minutes
+  </Card>
+  <Card title="CLI Quick Start" icon="terminal" href="/python-sdk/cli-quickstart">
+    Batch evaluate with the CLI tool
+  </Card>
+</CardGroup>

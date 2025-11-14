@@ -56,7 +56,10 @@
         "python-sdk/introduction",
         "python-sdk/installation",
         "python-sdk/quickstart",
-        "python-sdk/api-reference"
+        "python-sdk/api-reference",
+        "python-sdk/cli-quickstart",
+        "python-sdk/cli-reference",
+        "python-sdk/decorators-api"
       ]
     }
   ]

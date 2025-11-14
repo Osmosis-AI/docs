@@ -1,62 +1,97 @@
 ---
 title: 'Python SDK Introduction'
-description: 'Get started with the Osmosis Python SDK'
+description: 'Get started with the Osmosis AI Python SDK'
 ---
 
-# Osmosis Python SDK
+# Osmosis AI Python SDK
 
-The Osmosis Python SDK provides a convenient way to interact with the Osmosis Agent Improvement API from your Python applications.
+The Osmosis AI Python SDK provides tools for evaluating LLM outputs using natural language rubrics and reward functions. It supports both local deterministic evaluation and remote LLM-based semantic evaluation across multiple providers.
 
-## Installation
+## What is Osmosis AI?
 
-Install the SDK using pip:
+Osmosis AI helps you:
+- **Evaluate LLM outputs** with natural language rubrics
+- **Create reward functions** for reinforcement learning and scoring
+- **Compare providers** across OpenAI, Anthropic, Gemini, xAI, and more
+- **Batch process evaluations** with a built-in CLI tool
 
-```bash
-pip install osmosis-sdk
-```
+## Core Concepts
 
-## Quick Start
+### Two Evaluation Approaches
 
+**1. Local Reward Functions** - Fast, deterministic scoring
 ```python
-from osmosis import OsmosisClient
+from osmosis_ai import osmosis_reward
 
-# Initialize the client with your API key
-client = OsmosisClient(api_key="your-api-key")
-
-# Enhance a task with relevant knowledge
-response = client.enhance_task(
-    tenant_id="your-tenant-id",
-    query="How do I reset a user's password?",
-    context={"user_role": "admin"}
-)
-
-print(response.enhanced_query)
+@osmosis_reward
+def exact_match(solution_str: str, ground_truth: str, extra_info: dict = None) -> float:
+    return 1.0 if solution_str.strip() == ground_truth.strip() else 0.0
 ```
 
-## Features
+**2. Remote Rubric Evaluation** - LLM-powered semantic judgment
+```python
+from osmosis_ai import osmosis_rubric, evaluate_rubric
+
+@osmosis_rubric
+def helpfulness_check(solution_str: str, ground_truth: str | None, extra_info: dict) -> float:
+    return evaluate_rubric(
+        rubric="Evaluate how helpful and clear the response is.",
+        solution_str=solution_str,
+        model_info={"provider": "openai", "model": "gpt-5"}
+    )
+
+score = helpfulness_check(
+    solution_str="You can reset your password by clicking 'Forgot Password'.",
+    ground_truth=None,
+    extra_info={}
+)
+```
+
+### CLI Tool
+
+Batch process datasets with progress tracking:
+```bash
+osmosis eval --rubric <rubric_id> --data <path_to_data>
+```
+Rubrics are defined in `rubric_configs.yaml` for reusability across evaluations.
+
+## Key Features
 
 <CardGroup cols={2}>
-  <Card title="Task Enhancement" icon="brain">
-    Enrich your agent's tasks with relevant past knowledge
+  <Card title="LLM-Based Rubrics" icon="brain">
+    Natural language evaluation criteria with semantic understanding
   </Card>
-  <Card title="Knowledge Storage" icon="database">
-    Store and manage interaction histories
+  <Card title="Local Reward Functions" icon="bolt">
+    Fast, deterministic functions for exact match and simple checks
   </Card>
-  <Card title="Async Support" icon="bolt">
-    Full async/await support for high-performance applications
+  <Card title="Multi-Provider Support" icon="network-wired">
+    OpenAI, Anthropic, Gemini, xAI, OpenRouter, and Cerebras
   </Card>
-  <Card title="Type Safety" icon="shield">
-    Complete type hints for better IDE support
+  <Card title="CLI Tool" icon="terminal">
+    Batch evaluations with statistics and result tracking
   </Card>
 </CardGroup>
+
+## Use Cases
+
+- **Quality Assurance** - Evaluate LLM responses before serving to users
+- **Model Comparison** - Compare outputs across models and providers
+- **Reinforcement Learning** - Create reward functions for training
+- **A/B Testing** - Measure impact of prompt variations
 
 ## Next Steps
 
 <CardGroup cols={2}>
   <Card title="Installation" icon="download" href="/python-sdk/installation">
-    Learn how to install and configure the SDK
+    Install the SDK and set up API keys
   </Card>
-  <Card title="API Reference" icon="code" href="/python-sdk/api-reference">
-    Explore the complete API documentation
+  <Card title="Quick Start" icon="rocket" href="/python-sdk/quickstart">
+    Your first evaluation in 5 minutes
+  </Card>
+  <Card title="CLI Quick Start" icon="terminal" href="/python-sdk/cli-quickstart">
+    Batch evaluate datasets with the CLI
+  </Card>
+  <Card title="API Reference" icon="book" href="/python-sdk/api-reference">
+    Complete API documentation
   </Card>
 </CardGroup>

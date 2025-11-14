@@ -1,210 +1,285 @@
 ---
 title: 'API Reference'
-description: 'Complete Python SDK API reference'
+description: 'Complete Python SDK API reference for Osmosis AI'
 ---
 
 # API Reference
 
-## OsmosisClient
+Complete reference for the osmosis-ai Python SDK.
 
-The main client class for interacting with the Osmosis API.
+## Decorators
 
-### Constructor
+### @osmosis_reward
 
+Decorator for local reward functions that compute scores without API calls.
+
+**Signature:**
 ```python
-OsmosisClient(
-    api_key: str,
-    base_url: str = "https://osmosis.gulp.dev",
-    timeout: int = 30
-)
+@osmosis_reward
+def function_name(
+    solution_str: str,
+    ground_truth: str,
+    extra_info: dict = None
+) -> float
 ```
 
 **Parameters:**
-- `api_key` (str): Your Osmosis API key
-- `base_url` (str, optional): Base URL for the API. Defaults to production URL.
-- `timeout` (int, optional): Request timeout in seconds. Defaults to 30.
+- `solution_str` (str, required) - Text to evaluate
+- `ground_truth` (str, required) - Reference answer
+- `extra_info` (dict, optional) - Additional context
 
-### Methods
-
-#### enhance_task()
-
-Enhance a task with relevant past knowledge.
-
-```python
-client.enhance_task(
-    tenant_id: str,
-    query: str,
-    context: dict = None
-) -> EnhanceTaskResponse
-```
-
-**Parameters:**
-- `tenant_id` (str): Your tenant identifier (use your API key)
-- `query` (str): The task or query to enhance
-- `context` (dict, optional): Additional context information
-
-**Returns:**
-- `EnhanceTaskResponse`: Enhanced task with recommendations
+**Returns:** `float` - Score value
 
 **Example:**
 ```python
-response = client.enhance_task(
-    tenant_id="your-api-key",
-    query="How do I handle customer complaints?",
-    context={"department": "support"}
-)
+from osmosis_ai import osmosis_reward
+
+@osmosis_reward
+def exact_match(solution_str: str, ground_truth: str, extra_info: dict = None) -> float:
+    return 1.0 if solution_str.strip() == ground_truth.strip() else 0.0
 ```
 
-#### store_knowledge()
+---
 
-Store interaction knowledge for future retrieval.
+### @osmosis_rubric
 
+Decorator for LLM-based evaluation functions.
+
+**Signature:**
 ```python
-client.store_knowledge(
-    tenant_id: str,
-    input_text: str,
-    output_text: str,
-    metadata: dict = None
-) -> StoreKnowledgeResponse
-```
-
-**Parameters:**
-- `tenant_id` (str): Your tenant identifier
-- `input_text` (str): The input/query text
-- `output_text` (str): The response/output text
-- `metadata` (dict, optional): Additional metadata to store
-
-**Returns:**
-- `StoreKnowledgeResponse`: Storage confirmation with ID
-
-**Example:**
-```python
-response = client.store_knowledge(
-    tenant_id="your-api-key",
-    input_text="How to process returns?",
-    output_text="Step 1: Verify receipt...",
-    metadata={"category": "returns", "success": True}
-)
-```
-
-#### delete_by_intent()
-
-Delete knowledge entries matching a specific intent.
-
-```python
-client.delete_by_intent(
-    tenant_id: str,
-    intent: str
-) -> int
+@osmosis_rubric
+def function_name(
+    solution_str: str,
+    ground_truth: str | None,
+    extra_info: dict
+) -> float
 ```
 
 **Parameters:**
-- `tenant_id` (str): Your tenant identifier
-- `intent` (str): The intent to match for deletion
+- `solution_str` (str, required) - Text to evaluate
+- `ground_truth` (str | None, required) - Reference answer (can be None)
+- `extra_info` (dict, required) - Configuration and context
 
-**Returns:**
-- `int`: Number of entries deleted
-
-**Example:**
-```python
-deleted = client.delete_by_intent(
-    tenant_id="your-api-key",
-    intent="outdated pricing information"
-)
-print(f"Deleted {deleted} entries")
-```
-
-#### knowledge_status()
-
-Get the status of stored knowledge for a tenant.
-
-```python
-client.knowledge_status(
-    tenant_id: str
-) -> KnowledgeStatusResponse
-```
-
-**Parameters:**
-- `tenant_id` (str): Your tenant identifier
-
-**Returns:**
-- `KnowledgeStatusResponse`: Status information including count and recent entries
+**Returns:** `float` - Score value
 
 **Example:**
 ```python
-status = client.knowledge_status(tenant_id="your-api-key")
-print(f"Total entries: {status.count}")
-```
+from osmosis_ai import osmosis_rubric, evaluate_rubric
 
-## AsyncOsmosisClient
-
-Async version of the client for high-performance applications.
-
-```python
-from osmosis import AsyncOsmosisClient
-
-async def example():
-    client = AsyncOsmosisClient(api_key="your-api-key")
-    response = await client.enhance_task(
-        tenant_id="your-api-key",
-        query="Sample query",
-        context={}
+@osmosis_rubric
+def quality_check(solution_str: str, ground_truth: str | None, extra_info: dict) -> float:
+    return evaluate_rubric(
+        rubric="Evaluate response quality",
+        solution_str=solution_str,
+        model_info={"provider": "openai", "model": "gpt-5"},
+        ground_truth=ground_truth
     )
 ```
 
-All methods are the same as `OsmosisClient` but are async and should be awaited.
+---
 
-## Response Objects
+## Core Functions
 
-### EnhanceTaskResponse
+### evaluate_rubric()
 
+Evaluate text using an LLM-based rubric.
+
+**Signature:**
 ```python
-class EnhanceTaskResponse:
-    enhanced_query: str
-    recommendations: List[str]
-    relevant_knowledge: List[dict]
+def evaluate_rubric(
+    rubric: str,
+    solution_str: str,
+    model_info: dict,
+    ground_truth: str | None = None,
+    original_input: str | None = None,
+    metadata: dict | None = None,
+    score_min: float = 0.0,
+    score_max: float = 1.0,
+    timeout: int | None = None,
+    return_details: bool = False
+) -> float | dict
 ```
 
-### StoreKnowledgeResponse
+**Parameters:**
 
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `rubric` | str | Yes | Natural language evaluation criteria |
+| `solution_str` | str | Yes | Text to evaluate |
+| `model_info` | dict | Yes | LLM provider configuration |
+| `ground_truth` | str | No | Reference answer |
+| `original_input` | str | No | Original user query |
+| `metadata` | dict | No | Additional context |
+| `score_min` | float | No | Minimum score (default: 0.0) |
+| `score_max` | float | No | Maximum score (default: 1.0) |
+| `timeout` | int | No | Request timeout in seconds |
+| `return_details` | bool | No | Return full response (default: False) |
+
+**model_info Structure:**
 ```python
-class StoreKnowledgeResponse:
-    id: str
-    success: bool
-    message: str
+{
+    "provider": "openai",           # Required
+    "model": "gpt-5",         # Required
+    "api_key": "sk-...",            # Optional
+    "api_key_env": "OPENAI_API_KEY", # Optional
+    "timeout": 30                   # Optional
+}
 ```
 
-### KnowledgeStatusResponse
+**Returns:**
+- `float` - Score (when `return_details=False`)
+- `dict` - Full response with score, explanation, raw payload (when `return_details=True`)
 
+**Example:**
 ```python
-class KnowledgeStatusResponse:
-    count: int
-    tenant_id: str
-    recent_entries: List[dict]
+from osmosis_ai import evaluate_rubric
+
+score = evaluate_rubric(
+    rubric="Evaluate how helpful the response is.",
+    solution_str="Click 'Forgot Password' to reset.",
+    model_info={"provider": "openai", "model": "gpt-5"}
+)
 ```
+
+---
 
 ## Exceptions
 
-### OsmosisError
+### MissingAPIKeyError
 
-Base exception for all SDK errors.
-
-```python
-class OsmosisError(Exception):
-    message: str
-    status_code: int
-```
-
-### Authentication Errors
+Raised when an API key is not found for a provider.
 
 ```python
-class AuthenticationError(OsmosisError):
-    pass  # Raised for 401/403 responses
+from osmosis_ai import MissingAPIKeyError
+
+try:
+    score = evaluate_rubric(...)
+except MissingAPIKeyError as e:
+    print(f"API key not found: {e}")
 ```
 
-### API Errors
+---
+
+### ProviderRequestError
+
+Raised when a provider request fails.
 
 ```python
-class APIError(OsmosisError):
-    pass  # Raised for other API errors
+from osmosis_ai import ProviderRequestError
+
+try:
+    score = evaluate_rubric(...)
+except ProviderRequestError as e:
+    print(f"Provider error: {e}")
 ```
+
+---
+
+### ModelNotFoundError
+
+Raised when a specified model is not available (subclass of `ProviderRequestError`).
+
+```python
+from osmosis_ai import ModelNotFoundError
+
+try:
+    score = evaluate_rubric(...)
+except ModelNotFoundError as e:
+    print(f"Model not found: {e}")
+```
+
+---
+
+## Supported Providers
+
+| Provider | ID | Default API Key Env | Example Models |
+|----------|----|--------------------|----------------|
+| OpenAI | `openai` | `OPENAI_API_KEY` | gpt-5 |
+| Anthropic | `anthropic` | `ANTHROPIC_API_KEY` | claude-sonnet-4-5 |
+| Google Gemini | `gemini` | `GOOGLE_API_KEY` | gemini-2.5-flash |
+| xAI | `xai` | `XAI_API_KEY` | grok-4 |
+| OpenRouter | `openrouter` | `OPENROUTER_API_KEY` | 100+ models |
+| Cerebras | `cerebras` | `CEREBRAS_API_KEY` | llama3.1-405b |
+
+---
+
+## Type Definitions
+
+### ModelInfo (TypedDict)
+
+```python
+from osmosis_ai import ModelInfo
+
+model_info: ModelInfo = {
+    "provider": "openai",
+    "model": "gpt-5",
+    "api_key_env": "OPENAI_API_KEY",
+    "timeout": 30
+}
+```
+
+---
+
+### RewardRubricRunResult (TypedDict)
+
+Returned when `return_details=True`:
+
+```python
+{
+    "score": 0.85,              # float
+    "explanation": "...",       # str
+    "raw_payload": {...}        # dict
+}
+```
+
+---
+
+## Complete Example
+
+```python
+from osmosis_ai import osmosis_reward, osmosis_rubric, evaluate_rubric
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Local reward function
+@osmosis_reward
+def exact_match(solution_str: str, ground_truth: str, extra_info: dict = None) -> float:
+    return 1.0 if solution_str.strip() == ground_truth.strip() else 0.0
+
+# Remote rubric evaluator
+@osmosis_rubric
+def semantic_eval(solution_str: str, ground_truth: str | None, extra_info: dict) -> float:
+    return evaluate_rubric(
+        rubric="Compare semantic similarity (0-1 scale)",
+        solution_str=solution_str,
+        ground_truth=ground_truth,
+        model_info={"provider": "openai", "model": "gpt-5"}
+    )
+
+# Usage
+solution = "The capital of France is Paris"
+truth = "Paris is France's capital"
+
+local_score = exact_match(solution, truth)
+semantic_score = semantic_eval(solution, truth, {})
+
+print(f"Exact match: {local_score}")      # 0.0
+print(f"Semantic: {semantic_score}")      # ~1.0
+```
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/python-sdk/quickstart">
+    Learn with examples
+  </Card>
+  <Card title="Decorators & API Guide" icon="code" href="/python-sdk/decorators-api">
+    Advanced patterns
+  </Card>
+  <Card title="CLI Reference" icon="terminal" href="/python-sdk/cli-reference">
+    Batch evaluations
+  </Card>
+</CardGroup>

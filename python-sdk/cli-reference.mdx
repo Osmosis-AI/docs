@@ -1,0 +1,479 @@
+---
+title: 'CLI Reference'
+description: 'Complete reference for the osmosis-ai command-line interface'
+---
+
+# CLI Reference
+
+The osmosis-ai CLI provides two main commands: `preview` for inspecting configurations and `eval` for running evaluations.
+
+## Installation
+
+```bash
+pip install osmosis-ai
+```
+
+The CLI is accessible via three aliases:
+```bash
+osmosis
+osmosis-ai
+osmosis_ai
+```
+
+## Global Usage
+
+```bash
+osmosis [command] [options]
+```
+
+---
+
+## Commands
+
+### preview
+
+Inspect and validate rubric configurations or dataset files.
+
+#### Usage
+
+```bash
+osmosis preview --path <file_path>
+```
+
+#### Options
+
+| Option | Type | Required | Description |
+|--------|------|----------|-------------|
+| `--path` | string | Yes | Path to the file to preview (YAML or JSONL) |
+
+#### Examples
+
+**Preview a rubric configuration:**
+```bash
+osmosis preview --path rubric_configs.yaml
+```
+
+**Preview a dataset:**
+```bash
+osmosis preview --path sample_data.jsonl
+```
+
+#### Output
+
+The command will:
+- Validate the file structure
+- Display parsed contents in a readable format
+- Show count summary (number of rubrics or records)
+- Report any validation errors
+
+---
+
+### eval
+
+Evaluate a dataset against a rubric configuration.
+
+#### Usage
+
+```bash
+osmosis eval --rubric <rubric_id> --data <data_path> [options]
+```
+
+#### Required Options
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--rubric` | `-r` | string | Rubric ID from your configuration file |
+| `--data` | `-d` | string | Path to JSONL dataset file |
+
+#### Optional Parameters
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--config` | `-c` | string | Auto-discovered | Path to rubric configuration YAML |
+| `--number` | `-n` | integer | 1 | Number of evaluation runs per record |
+| `--output` | `-o` | string | `~/.cache/osmosis/...` | Output path for results JSON |
+| `--baseline` | `-b` | string | None | Path to baseline evaluation for comparison |
+
+#### Examples
+
+**Basic evaluation:**
+```bash
+osmosis eval --rubric helpfulness --data responses.jsonl
+```
+
+**Multiple runs for variance analysis:**
+```bash
+osmosis eval --rubric helpfulness --data responses.jsonl --number 5
+```
+
+**Custom output location:**
+```bash
+osmosis eval --rubric helpfulness --data responses.jsonl --output ./results/eval_001.json
+```
+
+**Compare against baseline:**
+```bash
+osmosis eval --rubric helpfulness --data new_responses.jsonl --baseline ./results/baseline.json
+```
+
+**Custom configuration file:**
+```bash
+osmosis eval --rubric helpfulness --data responses.jsonl --config ./configs/custom_rubrics.yaml
+```
+
+---
+
+## Configuration Files
+
+### Rubric Configuration (YAML)
+
+The rubric configuration file defines evaluation criteria and model settings.
+
+#### Structure
+
+```yaml
+version: 1
+default_score_min: 0.0
+default_score_max: 1.0
+
+rubrics:
+  - id: rubric_identifier
+    title: Human-Readable Title
+    rubric: |
+      Your evaluation criteria here.
+      Can be multiple lines.
+    model_info:
+      provider: openai
+      model: gpt-5
+      api_key_env: OPENAI_API_KEY
+      timeout: 30
+    score_min: 0.0  # Optional override
+    score_max: 1.0  # Optional override
+```
+
+#### Required Fields
+
+- `version`: Configuration schema version (currently `1`)
+- `rubrics`: List of rubric definitions
+
+#### Rubric Definition Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | string | Yes | Unique identifier for the rubric |
+| `title` | string | Yes | Human-readable title |
+| `rubric` | string | Yes | Evaluation criteria in natural language |
+| `model_info` | object | Yes | LLM provider configuration |
+| `score_min` | float | No | Minimum score (overrides default) |
+| `score_max` | float | No | Maximum score (overrides default) |
+
+#### Model Info Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `provider` | string | Yes | Provider name (see Supported Providers) |
+| `model` | string | Yes | Model identifier |
+| `api_key_env` | string | No | Environment variable name for API key |
+| `timeout` | integer | No | Request timeout in seconds (default: 30) |
+
+#### Auto-Discovery
+
+If you don't specify `--config`, the CLI searches for `rubric_configs.yaml` in:
+
+1. Same directory as the data file
+2. Current working directory
+3. `./examples/` subdirectory
+
+---
+
+### Dataset Format (JSONL)
+
+Each line in the JSONL file represents one evaluation record.
+
+#### Minimal Example
+
+```jsonl
+{"solution_str": "The AI's response text to evaluate"}
+```
+
+#### Complete Example
+
+```jsonl
+{
+  "conversation_id": "ticket-12345",
+  "rubric_id": "helpfulness",
+  "original_input": "How do I reset my password?",
+  "solution_str": "Click 'Forgot Password' on the login page and follow the email instructions.",
+  "ground_truth": "Users should use the password reset link sent to their registered email.",
+  "metadata": {
+    "customer_tier": "premium",
+    "category": "account_management"
+  },
+  "score_min": 0.0,
+  "score_max": 10.0
+}
+```
+
+#### Field Reference
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `solution_str` | string | Yes | The text to be evaluated (must be non-empty) |
+| `conversation_id` | string | No | Unique identifier for this record |
+| `rubric_id` | string | No | Links to a specific rubric in config |
+| `original_input` | string | No | Original user query/prompt for context |
+| `ground_truth` | string | No | Reference answer for comparison |
+| `metadata` | object | No | Additional context passed to evaluator |
+| `extra_info` | object | No | Runtime configuration options |
+| `score_min` | float | No | Override minimum score for this record |
+| `score_max` | float | No | Override maximum score for this record |
+
+---
+
+## Output Format
+
+### Console Output
+
+During evaluation, you'll see:
+
+```
+Evaluating records: 100%|████████████████| 50/50 [00:45<00:00, 1.1record/s]
+
+Overall Statistics:
+  Average Score: 0.847
+  Min Score: 0.200
+  Max Score: 1.000
+  Variance: 0.034
+  Std Deviation: 0.185
+  Success Rate: 100.0% (50/50)
+
+Evaluation Results:
+  ...
+
+Results saved to:
+  ~/.cache/osmosis/eval_result/helpfulness/rubric_eval_result_20250114_143022.json
+```
+
+### JSON Output File
+
+The output JSON file contains detailed results:
+
+```json
+{
+  "rubric_id": "helpfulness",
+  "timestamp": "2025-01-14T14:30:22.123456",
+  "duration_seconds": 45.2,
+  "total_records": 50,
+  "successful_evaluations": 50,
+  "failed_evaluations": 0,
+  "statistics": {
+    "average": 0.847,
+    "min": 0.200,
+    "max": 1.000,
+    "variance": 0.034,
+    "std_dev": 0.185
+  },
+  "results": [
+    {
+      "conversation_id": "ticket-12345",
+      "runs": [
+        {
+          "score": 0.85,
+          "explanation": "The response directly addresses the question...",
+          "raw_payload": {...},
+          "duration_ms": 890
+        }
+      ],
+      "aggregate_stats": {
+        "average": 0.85,
+        "variance": 0.0
+      }
+    }
+  ],
+  "model_info": {
+    "provider": "openai",
+    "model": "gpt-5"
+  }
+}
+```
+
+---
+
+## Supported Providers
+
+| Provider | Value | API Key Env | Example Models |
+|----------|-------|-------------|----------------|
+| OpenAI | `openai` | `OPENAI_API_KEY` | gpt-5 |
+| Anthropic | `anthropic` | `ANTHROPIC_API_KEY` | claude-sonnet-4-5 |
+| Google Gemini | `gemini` | `GOOGLE_API_KEY` | gemini-2.5-flash |
+| xAI | `xai` | `XAI_API_KEY` | grok-4 |
+| OpenRouter | `openrouter` | `OPENROUTER_API_KEY` | 100+ models |
+| Cerebras | `cerebras` | `CEREBRAS_API_KEY` | llama3.1-405b |
+
+### Provider Configuration Example
+
+```yaml
+model_info:
+  provider: openai           # Or: anthropic, gemini, xai, openrouter, cerebras
+  model: gpt-5        # Provider-specific model identifier
+  api_key_env: OPENAI_API_KEY  # Environment variable name
+  timeout: 30               # Optional timeout in seconds
+```
+
+---
+
+## Advanced Usage
+
+### Baseline Comparison
+
+Compare new evaluations against a baseline to detect regressions:
+
+```bash
+# Create baseline
+osmosis eval --rubric helpfulness --data baseline.jsonl --output baseline.json
+
+# Compare new data against baseline
+osmosis eval --rubric helpfulness --data new_data.jsonl --baseline baseline.json
+```
+
+The output will include delta statistics showing improvements or regressions.
+
+### Variance Analysis
+
+Run multiple evaluations per record to measure score consistency:
+
+```bash
+osmosis eval --rubric helpfulness --data responses.jsonl --number 10
+```
+
+Useful for:
+- Understanding rubric stability
+- Detecting ambiguous criteria
+- A/B testing different prompts
+
+### Batch Processing
+
+Process multiple datasets:
+
+```bash
+for file in data/*.jsonl; do
+  osmosis eval --rubric helpfulness --data "$file" --output "results/$(basename $file .jsonl).json"
+done
+```
+
+### Custom Cache Location
+
+Override the default cache directory:
+
+```bash
+export OSMOSIS_CACHE_DIR=/path/to/custom/cache
+osmosis eval --rubric helpfulness --data responses.jsonl
+```
+
+---
+
+## Error Handling
+
+### Common Errors
+
+#### API Key Not Found
+```
+Error: API key not found for provider 'openai'
+```
+
+**Solution:** Set the environment variable:
+```bash
+export OPENAI_API_KEY="your-key-here"
+```
+
+#### Rubric Not Found
+```
+Error: Rubric 'helpfulness' not found in configuration
+```
+
+**Solution:** Check your `rubric_configs.yaml` and ensure the rubric ID matches exactly.
+
+#### Invalid JSONL Format
+```
+Error: Invalid JSON on line 5
+```
+
+**Solution:** Validate your JSONL file. Each line must be valid JSON.
+
+#### Model Not Found
+```
+Error: Model 'gpt-5' not available for provider 'openai'
+```
+
+**Solution:** Use a valid model identifier for your chosen provider.
+
+#### Timeout Error
+```
+Error: Request timed out after 30 seconds
+```
+
+**Solution:** Increase the timeout in your model configuration:
+```yaml
+model_info:
+  timeout: 60
+```
+
+---
+
+## Best Practices
+
+**Writing Effective Rubrics:**
+- Be specific and measurable
+- Include clear criteria and examples
+- Test with sample data before large-scale evaluation
+
+**Dataset Preparation:**
+- Include diverse examples with relevant metadata
+- Validate JSONL syntax before evaluation
+- Keep solution_str concise but complete
+
+**Performance Optimization:**
+- Use faster models (gpt-5, claude-sonnet-4-5) for large datasets
+- Process datasets in batches for cost efficiency
+
+**Cost Management:**
+- Start with small samples to test rubrics
+- Monitor API usage through provider dashboards
+
+---
+
+## Troubleshooting
+
+**Debug Mode:**
+```bash
+export OSMOSIS_DEBUG=1
+osmosis eval --rubric helpfulness --data responses.jsonl
+```
+
+**Verify Installation:**
+```bash
+pip show osmosis-ai
+```
+
+**Test Setup:**
+```bash
+osmosis preview --path rubric_configs.yaml
+```
+
+**Check Results:**
+```bash
+ls -lh ~/.cache/osmosis/eval_result/
+```
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/python-sdk/cli-quickstart">
+    New to the CLI? Start with the quick start guide
+  </Card>
+  <Card title="Decorators & API" icon="code" href="/python-sdk/decorators-api">
+    Learn about programmatic usage with Python decorators
+  </Card>
+</CardGroup>
