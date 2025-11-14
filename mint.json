@@ -10,12 +10,13 @@
   "api": {
     "baseUrl": "https://osmosis.gulp.dev",
     "playground": {
-      "mode": "show"
+      "mode": "hide"
     },
     "auth": {
       "method": "key",
       "name": "x-api-key"
-    }
+    },
+    "maintainOrder": true
   },
   "colors": {
     "primary": "#707FDD",
@@ -34,30 +35,19 @@
   ],
   "tabs": [
     {
-      "name": "Methods Playground",
-      "url": "api-reference"
-    },
-    {
       "name": "Examples",
       "url": "examples"
+    },
+    {
+      "name": "Python SDK",
+      "url": "python-sdk"
     }
   ],
   "navigation": [
     {
       "group": "Getting Started",
       "pages": [
-        "introduction",
-        "quickstart/authentication"
-      ]
-    },
-    {
-      "group": "API Reference",
-      "pages": [
-        "api-reference/overview",
-        "api-reference/enhance-task",
-        "api-reference/store-knowledge",
-        "api-reference/delete-by-intent",
-        "api-reference/knowledge-status"
+        "introduction"
       ]
     }
   ]

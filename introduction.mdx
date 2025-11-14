@@ -12,11 +12,11 @@ description: 'Learn how to use the Osmosis Agent Improvement API to enhance your
 Osmosis Agent Improvement API helps you build smarter, more context-aware AI agents. Our API provides essential building blocks for creating agents that learn from past interactions and make better decisions over time.
 
 <CardGroup cols={2}>
-  <Card title="Quick Start" icon="bolt" href="/quickstart/authentication">
+  <Card title="Quick Start" icon="bolt" href="/introduction">
     Get up and running with Osmosis API in minutes
   </Card>
-  <Card title="API Reference" icon="code" href="/api-reference/overview">
-    Explore our comprehensive API documentation
+  <Card title="Introduction" icon="code" href="/introduction">
+    Learn about Osmosis and how it works
   </Card>
 </CardGroup>
 
@@ -37,43 +37,11 @@ Osmosis Agent Improvement API helps you build smarter, more context-aware AI age
   </Card>
 </CardGroup>
 
-## Core Endpoints
-
-The API provides three main endpoints to power your AI agents:
-
-<Steps>
-  <Step title="/enhance_task">
-    Enhance an agent's query with relevant knowledge from past interactions. Perfect for improving response quality and maintaining context.
-    ```bash
-    POST https://osmosis.gulp.dev/enhance_task
-    ```
-  </Step>
-  <Step title="/store_knowledge">
-    Store conversation or event history for future reference. Builds your knowledge base over time.
-    ```bash
-    POST https://osmosis.gulp.dev/store_knowledge
-    ```
-  </Step>
-  <Step title="/delete_by_intent">
-    Delete stale or irrelevant knowledge using intent matching. Keeps your knowledge base clean and relevant.
-    ```bash
-    POST https://osmosis.gulp.dev/delete_by_intent
-    ```
-  </Step>
-  <Step title="/knowledge_status/{job_id}">
-    Check the status of a knowledge upload job. Monitor progress and handle completion.
-    ```bash
-    GET https://osmosis.gulp.dev/knowledge_status/{job_id}
-    ```
-  </Step>
-</Steps>
-
 ## Why Use Osmosis?
 
 <Tip>
 AI Agent builders are often faced with the task of adding more and more edge case handling prompts to their agents.
 However, with osmosis it is now possible to attach those edge cases to the input prompt directly and keep the system prompts clean.
-We do this by using the [enhance_task](/api-reference/enhance-task) endpoint, which will attach edge cases learned from past interactions stored via the [store_knowledge](/api-reference/store-knowledge) endpoint.
 </Tip>
 
 Here's how Osmosis helps:
@@ -104,11 +72,8 @@ To start using the Osmosis API:
   <Step title="Get API Access">
     [Contact us](mailto:founders@gulp.ai) to request API access
   </Step>
-  <Step title="Authentication Setup">
-    Follow our [authentication guide](/quickstart/authentication) to set up your API key
-  </Step>
-  <Step title="Make Your First Call">
-    Try our [API endpoints](/api-reference/overview) with the provided examples
+  <Step title="Start Building">
+    Begin integrating Osmosis into your AI agents
   </Step>
 </Steps>
 
@@ -118,9 +83,9 @@ To start using the Osmosis API:
   <Card title="Email Support" icon="envelope">
     Contact us at [founders@gulp.ai](mailto:founders@gulp.ai)
   </Card>
-  <Card title="API Reference" icon="book">
-    Check our detailed [API documentation](/api-reference/overview)
+  <Card title="Documentation" icon="book">
+    Explore our comprehensive documentation
   </Card>
 </CardGroup>
 
-Ready to get started? Head over to our [Quick Start guide](/quickstart/authentication) to begin!
+Ready to get started? [Contact us](mailto:founders@gulp.ai) to begin!
