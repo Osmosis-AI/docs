@@ -1,0 +1,632 @@
+---
+title: 'Best Practices'
+description: 'Best practices and troubleshooting for Git Sync'
+---
+
+# Best Practices
+
+This guide covers best practices for maintaining your Osmosis-synced repository and troubleshooting common issues.
+
+## Documentation
+
+### Write Clear Docstrings
+
+All functions should have comprehensive docstrings:
+
+```python
+@mcp.tool()
+def fetch_user_data(user_id: str, include_history: bool = False) -> dict:
+    """
+    Fetch user profile data from the database.
+
+    This tool retrieves comprehensive user information including
+    profile details and optionally their activity history.
+
+    Args:
+        user_id: Unique identifier for the user (UUID format)
+        include_history: Whether to include activity logs (default: False)
+
+    Returns:
+        Dictionary with keys:
+        - id: User identifier
+        - name: Full name
+        - email: Email address
+        - history: Activity logs (if include_history=True)
+
+    Raises:
+        ValueError: If user_id format is invalid
+        LookupError: If user_id not found in database
+
+    Example:
+        >>> fetch_user_data("123e4567-e89b-12d3-a456-426614174000")
+        {'id': '123e...', 'name': 'John Doe', 'email': 'john@example.com'}
+    """
+    # Implementation
+    pass
+```
+
+### Include Type Hints
+
+Type hints improve IDE support and validation:
+
+```python
+from typing import Optional, Union, List, Dict
+
+@osmosis_reward
+def evaluate_response(
+    solution_str: str,
+    ground_truth: str,
+    extra_info: Optional[Dict[str, any]] = None,
+    **kwargs
+) -> float:
+    """Type hints make the function signature clear"""
+    pass
+```
+
+### Document Expected Formats
+
+Clearly specify input/output formats:
+
+```python
+@osmosis_reward
+def json_match_reward(
+    solution_str: str,
+    ground_truth: str,
+    extra_info: dict = None,
+    **kwargs
+) -> float:
+    """
+    Compare JSON outputs for structural matching.
+
+    Expected format for solution_str and ground_truth:
+    {
+        "answer": "the answer text",
+        "confidence": 0.95,
+        "sources": ["source1", "source2"]
+    }
+
+    Returns 1.0 for perfect match, 0.0 for no match.
+    Partial credit given for matching some fields.
+    """
+    pass
+```
+
+## Testing
+
+### Write Unit Tests
+
+Create comprehensive tests for your functions:
+
+```python
+# tests/test_reward_functions.py
+import pytest
+from reward_fn.compute_reward import numbers_match_reward
+
+def test_exact_match():
+    """Test exact numerical match"""
+    score = numbers_match_reward("#### 42", "42")
+    assert score == 1.0
+
+def test_close_match():
+    """Test near-match within epsilon"""
+    score = numbers_match_reward("#### 42.0000001", "42")
+    assert score == 1.0
+
+def test_mismatch():
+    """Test completely different values"""
+    score = numbers_match_reward("#### 100", "42")
+    assert score == 0.0
+
+def test_invalid_format():
+    """Test handling of invalid input format"""
+    score = numbers_match_reward("no number here", "42")
+    assert score == 0.0
+
+def test_missing_solution():
+    """Test handling of empty solution"""
+    score = numbers_match_reward("", "42")
+    assert score == 0.0
+
+@pytest.mark.parametrize("solution,ground_truth,expected", [
+    ("#### 1", "1", 1.0),
+    ("#### 0", "0", 1.0),
+    ("#### -5", "-5", 1.0),
+    ("#### 3.14159", "3.14159", 1.0),
+])
+def test_various_numbers(solution, ground_truth, expected):
+    """Test various number formats"""
+    score = numbers_match_reward(solution, ground_truth)
+    assert score == expected
+```
+
+### Test MCP Tools Locally
+
+Before pushing, test your MCP server:
+
+```python
+# mcp/test/test.py
+import requests
+import json
+
+def test_health_endpoint():
+    """Test that server is running"""
+    response = requests.get("http://localhost:8080/health")
+    assert response.status_code == 200
+    assert response.json()["status"] == "healthy"
+
+def test_multiply_tool():
+    """Test the multiply tool"""
+    # Test with FastMCP's tool calling interface
+    payload = {
+        "tool": "multiply",
+        "arguments": {
+            "first_val": 2.5,
+            "second_val": 4.0
+        }
+    }
+    response = requests.post("http://localhost:8080/call_tool", json=payload)
+    assert response.status_code == 200
+    result = response.json()
+    assert result["result"] == 10.0
+
+if __name__ == "__main__":
+    test_health_endpoint()
+    test_multiply_tool()
+    print("All tests passed!")
+```
+
+Run tests:
+
+```bash
+# Start server in background
+python mcp/main.py &
+SERVER_PID=$!
+
+# Run tests
+python mcp/test/test.py
+
+# Stop server
+kill $SERVER_PID
+```
+
+### Use Test Fixtures
+
+Create reusable test data:
+
+```python
+# tests/conftest.py
+import pytest
+
+@pytest.fixture
+def sample_solution():
+    return "The answer is 42. #### 42"
+
+@pytest.fixture
+def sample_ground_truth():
+    return "42"
+
+@pytest.fixture
+def sample_extra_info():
+    return {
+        "metadata": {
+            "difficulty": "easy",
+            "category": "arithmetic"
+        }
+    }
+
+# tests/test_with_fixtures.py
+def test_with_fixtures(sample_solution, sample_ground_truth):
+    score = numbers_match_reward(sample_solution, sample_ground_truth)
+    assert score == 1.0
+```
+
+## CI/CD Integration
+
+### GitHub Actions Workflow
+
+Create `.github/workflows/test.yml`:
+
+```yaml
+name: Test and Validate
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest pytest-cov
+
+      - name: Run tests
+        run: |
+          pytest tests/ -v --cov=. --cov-report=term-missing
+
+      - name: Lint code
+        run: |
+          pip install ruff
+          ruff check .
+
+      - name: Type check
+        run: |
+          pip install mypy
+          mypy mcp/ reward_fn/ reward_rubric/
+
+      - name: Test MCP server
+        run: |
+          python mcp/main.py &
+          sleep 5
+          python mcp/test/test.py
+          pkill -f "python mcp/main.py"
+```
+
+### Pre-commit Hooks
+
+Create `.pre-commit-config.yaml`:
+
+```yaml
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-json
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.9
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+```
+
+Install pre-commit:
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+## Security
+
+### Never Commit Secrets
+
+Use environment variables for sensitive data:
+
+```python
+# Good
+import os
+API_KEY = os.getenv("OPENAI_API_KEY")
+
+# Bad - NEVER do this
+API_KEY = "sk-proj-1234567890abcdef"
+```
+
+### Use .gitignore
+
+Ensure `.gitignore` includes:
+
+```
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# API keys and secrets
+secrets.json
+credentials.json
+*.key
+*.pem
+
+# Python
+__pycache__/
+*.pyc
+venv/
+*.egg-info/
+```
+
+### Review Permissions Carefully
+
+When connecting private repos:
+- ✅ Grant minimal required permissions
+- ✅ Review which repositories Osmosis can access
+- ✅ Use deploy keys for specific repo access
+- ✅ Regularly audit connected integrations
+
+### Validate Inputs
+
+Always validate and sanitize inputs:
+
+```python
+@mcp.tool()
+def execute_query(query: str) -> dict:
+    """
+    Execute a database query (with validation)
+    """
+    # Validate input
+    if not query or not isinstance(query, str):
+        raise ValueError("Query must be a non-empty string")
+
+    # Sanitize - prevent SQL injection
+    if any(keyword in query.upper() for keyword in ['DROP', 'DELETE', 'TRUNCATE']):
+        raise ValueError("Destructive operations not allowed")
+
+    # Execute safely
+    return safe_execute(query)
+```
+
+## Code Organization
+
+### Keep Functions Focused
+
+Each function should have a single, clear purpose:
+
+```python
+# Good - focused functions
+@mcp.tool()
+def calculate_average(numbers: list[float]) -> float:
+    """Calculate arithmetic mean"""
+    return sum(numbers) / len(numbers)
+
+@mcp.tool()
+def calculate_median(numbers: list[float]) -> float:
+    """Calculate median value"""
+    sorted_nums = sorted(numbers)
+    n = len(sorted_nums)
+    if n % 2 == 0:
+        return (sorted_nums[n//2-1] + sorted_nums[n//2]) / 2
+    return sorted_nums[n//2]
+
+# Avoid - doing too much
+@mcp.tool()
+def analyze_numbers(numbers: list[float]) -> dict:
+    """Calculate mean, median, mode, stddev, plot histogram..."""
+    # Too many responsibilities
+    pass
+```
+
+### Use Helper Functions
+
+Break complex logic into smaller pieces:
+
+```python
+# Helper functions (not decorated - not exposed as tools)
+def extract_number(text: str) -> Optional[float]:
+    """Extract numeric value from text"""
+    import re
+    match = re.search(r'[-+]?\d*\.?\d+', text)
+    return float(match.group()) if match else None
+
+def normalize_score(raw_score: float, min_val: float, max_val: float) -> float:
+    """Normalize score to [0, 1] range"""
+    return (raw_score - min_val) / (max_val - min_val)
+
+# Main function using helpers
+@osmosis_reward
+def text_numeric_reward(
+    solution_str: str,
+    ground_truth: str,
+    extra_info: dict = None,
+    **kwargs
+) -> float:
+    """Reward based on numeric extraction and comparison"""
+    solution_num = extract_number(solution_str)
+    truth_num = extract_number(ground_truth)
+
+    if solution_num is None or truth_num is None:
+        return 0.0
+
+    difference = abs(solution_num - truth_num)
+    raw_score = 1.0 / (1.0 + difference)
+
+    return normalize_score(raw_score, 0.0, 1.0)
+```
+
+### Organize by Feature
+
+Structure your code logically:
+
+```
+mcp/
+├── tools/
+│   ├── __init__.py
+│   ├── math/              # Math-related tools
+│   │   ├── __init__.py
+│   │   ├── arithmetic.py
+│   │   └── statistics.py
+│   ├── data/              # Data processing tools
+│   │   ├── __init__.py
+│   │   ├── fetch.py
+│   │   └── transform.py
+│   └── utils/             # Utility functions
+│       ├── __init__.py
+│       └── validation.py
+```
+
+## Performance
+
+### Cache Expensive Operations
+
+```python
+from functools import lru_cache
+
+@lru_cache(maxsize=1000)
+def expensive_computation(input_data: str) -> float:
+    """Cached expensive operation"""
+    # Complex calculation
+    return result
+
+@osmosis_reward
+def cached_reward(solution_str, ground_truth, extra_info=None, **kwargs):
+    """Uses cached helper function"""
+    return expensive_computation(solution_str)
+```
+
+### Choose Appropriate Models
+
+For rubrics:
+
+```python
+# Example with OpenAI
+MODEL = "gpt-5"
+
+# Example with Anthropic
+MODEL = "claude-sonnet-4-5"
+```
+
+### Batch Operations When Possible
+
+```python
+@mcp.tool()
+def batch_calculate(numbers_list: list[list[float]]) -> list[float]:
+    """Process multiple calculations in one call"""
+    return [sum(numbers) / len(numbers) for numbers in numbers_list]
+```
+
+## Monitoring and Debugging
+
+### Add Logging
+
+```python
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+@osmosis_reward
+def logged_reward(solution_str, ground_truth, extra_info=None, **kwargs):
+    """Reward function with logging"""
+    logger.info(f"Evaluating solution: {solution_str[:50]}...")
+
+    try:
+        score = compute_score(solution_str, ground_truth)
+        logger.info(f"Computed score: {score}")
+        return score
+    except Exception as e:
+        logger.error(f"Error computing score: {e}")
+        return 0.0
+```
+
+### Track Metrics
+
+```python
+from collections import defaultdict
+
+metrics = defaultdict(int)
+
+@osmosis_reward
+def instrumented_reward(solution_str, ground_truth, extra_info=None, **kwargs):
+    """Track function calls and errors"""
+    metrics['calls'] += 1
+
+    try:
+        score = compute_score(solution_str, ground_truth)
+        metrics['successes'] += 1
+        return score
+    except Exception as e:
+        metrics['errors'] += 1
+        logger.error(f"Error: {e}")
+        return 0.0
+```
+
+## Troubleshooting
+
+### Sync Issues
+
+**Problem**: Repository not syncing to Osmosis
+
+**Solutions**:
+- ✅ Verify folder structure matches exactly (case-sensitive)
+- ✅ Check webhook settings in GitHub repository settings
+- ✅ Review Osmosis sync logs for specific errors
+- ✅ Ensure `pyproject.toml` includes all dependencies
+- ✅ Validate decorators are spelled correctly
+
+### Tool Discovery Issues
+
+**Problem**: MCP tools not appearing in Osmosis
+
+**Solutions**:
+- ✅ Confirm `@mcp.tool()` decorator is present
+- ✅ Check tools are exported in `mcp/tools/__init__.py`:
+  ```python
+  from .math import multiply
+  __all__ = ['multiply']
+  ```
+- ✅ Verify type hints exist for all parameters and return values
+- ✅ Ensure no syntax errors in tool files
+- ✅ Check Osmosis platform logs for import errors
+
+### Reward Function Issues
+
+**Problem**: Reward functions returning unexpected scores
+
+**Solutions**:
+- ✅ Test locally with sample inputs
+- ✅ Add print statements or logging
+- ✅ Verify input format matches expectations
+- ✅ Check error handling catches all edge cases
+- ✅ Ensure return type is `float`
+
+### Rubric Evaluation Issues
+
+**Problem**: Rubric scores inconsistent or errors
+
+**Solutions**:
+- ✅ Verify API key is set correctly
+- ✅ Check API key has sufficient credits/quota
+- ✅ Test with simpler rubric first
+- ✅ Add error handling around `evaluate_rubric` call
+- ✅ Use `return_details=True` to see evaluation reasoning
+- ✅ Verify model name is correct for provider
+
+### Import Errors
+
+**Problem**: `ModuleNotFoundError` or import failures
+
+**Solutions**:
+- ✅ Ensure all directories have `__init__.py` files
+- ✅ Verify imports use correct paths
+- ✅ Check dependencies are installed: `pip install -e .`
+- ✅ Use absolute imports from package root
+- ✅ Verify virtual environment is activated
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Example Repository" icon="github" href="https://github.com/Osmosis-AI/osmosis-git-sync-example">
+    Study the complete reference implementation
+  </Card>
+  <Card title="Python SDK" icon="python" href="/python-sdk/introduction">
+    Learn more about the Python SDK
+  </Card>
+  <Card title="Contact Support" icon="envelope" href="mailto:contact@osmosis.ai">
+    Get help from the Osmosis team
+  </Card>
+  <Card title="Setup Guide" icon="rocket" href="/git-sync/setup-guide">
+    Review the setup process
+  </Card>
+</CardGroup>

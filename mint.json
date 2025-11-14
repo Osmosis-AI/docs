@@ -2,10 +2,10 @@
   "$schema": "https://mintlify.com/schema.json",
   "name": "Osmosis API",
   "logo": {
-    "dark": "/logo/logo.png",
-    "light": "/logo/logo.png"
+    "dark": "/logo/logo.svg",
+    "light": "/logo/logo.svg"
   },
-  "favicon": "/favicon.png",
+  "favicon": "/favicon.svg",
   "openapi": "/openapi.json",
   "api": {
     "baseUrl": "https://osmosis.gulp.dev",
@@ -30,7 +30,7 @@
   "topbarLinks": [
     {
       "name": "Contact Us",
-      "url": "mailto:founders@gulp.ai"
+      "url": "mailto:contact@osmosis.ai"
     }
   ],
   "tabs": [
@@ -41,6 +41,10 @@
     {
       "name": "Python SDK",
       "url": "python-sdk"
+    },
+    {
+      "name": "Git Sync",
+      "url": "git-sync"
     }
   ],
   "navigation": [
@@ -60,6 +64,18 @@
         "python-sdk/cli-quickstart",
         "python-sdk/cli-reference",
         "python-sdk/decorators-api"
+      ]
+    },
+    {
+      "group": "Git Sync",
+      "pages": [
+        "git-sync/overview",
+        "git-sync/folder-structure",
+        "git-sync/mcp-tools",
+        "git-sync/reward-functions",
+        "git-sync/reward-rubrics",
+        "git-sync/sync-repository-to-platform",
+        "git-sync/best-practices"
       ]
     }
   ]

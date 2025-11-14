@@ -1,0 +1,103 @@
+---
+title: 'Folder Structure'
+description: 'Required repository structure for Osmosis Git Sync'
+---
+
+# Required Folder Structure
+
+Your repository must follow this structure for Osmosis to automatically discover your components:
+
+```
+your-repo/
+├── mcp/                           # MCP Tools
+│   ├── main.py                   # FastMCP server entry point
+│   ├── server/
+│   │   ├── __init__.py
+│   │   └── mcp_server.py        # FastMCP server definition
+│   └── tools/                    # Tool modules
+│       ├── __init__.py
+│       ├── math.py              # Example tool module
+│       └── ...
+├── reward_fn/                     # Reward Functions
+│   └── compute_reward.py         # @osmosis_reward functions
+├── reward_rubric/                 # Reward Rubrics
+│   ├── reward_rubric_openai.py   # @osmosis_rubric functions
+│   ├── reward_rubric_anthropic.py
+│   └── ...
+└── pyproject.toml                 # Python dependencies
+```
+
+## Directory Breakdown
+
+### `mcp/` - MCP Tools Directory
+
+Contains your Model Context Protocol tools that extend AI agent capabilities.
+
+**Key files:**
+- `main.py` - Entry point for the FastMCP server
+- `server/mcp_server.py` - FastMCP server configuration
+- `tools/` - Directory containing individual tool modules
+
+### `reward_fn/` - Reward Functions Directory
+
+Contains deterministic reward functions decorated with `@osmosis_reward`.
+
+**Example:**
+- `compute_reward.py` - Your reward function implementations
+
+### `reward_rubric/` - Reward Rubrics Directory
+
+Contains LLM-based evaluation functions decorated with `@osmosis_rubric`.
+
+**Example:**
+- `reward_rubric_openai.py` - Rubric using OpenAI models
+- `reward_rubric_anthropic.py` - Rubric using Anthropic models
+
+### `pyproject.toml` - Dependencies
+
+Defines your Python package dependencies:
+
+```toml
+[project]
+name = "my-osmosis-repo"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "osmosis-ai>=0.1.0",
+    "fastmcp>=0.1.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+```
+
+## What Gets Synced?
+
+When you push changes to your repository, Osmosis automatically:
+
+1. **Discovers MCP Tools** - Functions with `@mcp.tool()` in `mcp/tools/`
+2. **Registers Reward Functions** - Functions with `@osmosis_reward` in `reward_fn/`
+3. **Syncs Reward Rubrics** - Functions with `@osmosis_rubric` in `reward_rubric/`
+4. **Updates Platform** - Changes reflect in Osmosis within minutes
+
+## Optional Directories
+
+You can also include:
+- `tests/` - Unit tests for your components
+- `.github/workflows/` - CI/CD automation
+- `docs/` - Additional documentation
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="MCP Tools" icon="wrench" href="/git-sync/mcp-tools">
+    Learn to create MCP tools
+  </Card>
+  <Card title="Reward Functions" icon="trophy" href="/git-sync/reward-functions">
+    Build reward functions
+  </Card>
+  <Card title="Reward Rubrics" icon="list-check" href="/git-sync/reward-rubrics">
+    Implement rubric scoring
+  </Card>
+</CardGroup>

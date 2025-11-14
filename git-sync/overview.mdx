@@ -1,0 +1,55 @@
+---
+title: 'Set Your Own Repo'
+description: 'Sync your GitHub repository with Osmosis AI platform'
+---
+
+# Set Your Own Repo
+
+The Osmosis AI platform supports automatic synchronization from GitHub repositories. You can store your MCP tools, reward functions, and reward rubrics in your own repository (public or private), and Osmosis will automatically discover and sync them.
+
+## Why Use Git Sync?
+
+By connecting your GitHub repository to Osmosis, you can:
+- **Version control** your evaluation logic alongside your application code
+- **Collaborate** with your team using familiar Git workflows
+- **Automate** deployments through CI/CD pipelines
+- **Keep repositories private** while still syncing with Osmosis
+
+## What Can You Sync?
+
+Osmosis automatically discovers and syncs three types of components from your repository:
+
+1. **MCP Tools** - Extend AI agent capabilities with custom functions
+2. **Reward Functions** - Provide deterministic, numeric scoring for LLM outputs
+3. **Reward Rubrics** - Use LLMs to evaluate outputs with natural language criteria
+
+## Example Repository
+
+Check out our reference implementation: [osmosis-git-sync-example](https://github.com/Osmosis-AI/osmosis-git-sync-example)
+
+This example demonstrates the complete folder structure and code artifacts that the Osmosis GitHub integration discovers and syncs.
+
+## Quick Start
+
+1. Create a repository with the required folder structure
+2. Implement your MCP tools, reward functions, or rubrics
+3. Push to GitHub
+4. Connect your repository to Osmosis
+5. Watch your components sync automatically
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Folder Structure" icon="folder-tree" href="/git-sync/folder-structure">
+    Learn the required repository layout
+  </Card>
+  <Card title="Setup Guide" icon="rocket" href="/git-sync/setup-guide">
+    Step-by-step setup instructions
+  </Card>
+  <Card title="MCP Tools" icon="wrench" href="/git-sync/mcp-tools">
+    Create custom MCP tools
+  </Card>
+  <Card title="Best Practices" icon="star" href="/git-sync/best-practices">
+    Tips for success
+  </Card>
+</CardGroup>
