@@ -24,7 +24,7 @@ Osmosis AI helps you:
 from osmosis_ai import osmosis_reward
 
 @osmosis_reward
-def exact_match(solution_str: str, ground_truth: str, extra_info: dict = None) -> float:
+def exact_match(solution_str: str, ground_truth: str, extra_info: dict = None, **kwargs) -> float:
     return 1.0 if solution_str.strip() == ground_truth.strip() else 0.0
 ```
 
@@ -33,7 +33,7 @@ def exact_match(solution_str: str, ground_truth: str, extra_info: dict = None) -
 from osmosis_ai import osmosis_rubric, evaluate_rubric
 
 @osmosis_rubric
-def helpfulness_check(solution_str: str, ground_truth: str | None, extra_info: dict) -> float:
+def helpfulness_check(solution_str: str, ground_truth: str | None, extra_info: dict, **kwargs) -> float:
     return evaluate_rubric(
         rubric="Evaluate how helpful and clear the response is.",
         solution_str=solution_str,

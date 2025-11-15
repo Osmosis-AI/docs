@@ -72,7 +72,7 @@ For deterministic, local evaluation, use the `@osmosis_reward` decorator:
 from osmosis_ai import osmosis_reward
 
 @osmosis_reward
-def exact_match(solution_str: str, ground_truth: str, extra_info: dict = None) -> float:
+def exact_match(solution_str: str, ground_truth: str, extra_info: dict = None, **kwargs) -> float:
     """Returns 1.0 for exact match, 0.0 otherwise."""
     return 1.0 if solution_str.strip() == ground_truth.strip() else 0.0
 
@@ -84,7 +84,7 @@ print(f"Match score: {score}")  # 1.0
 
 ```python
 @osmosis_reward
-def numeric_match(solution_str: str, ground_truth: str, extra_info: dict = None) -> float:
+def numeric_match(solution_str: str, ground_truth: str, extra_info: dict = None, **kwargs) -> float:
     """Match numbers with tolerance."""
     try:
         solution_val = float(solution_str.strip())
@@ -110,7 +110,8 @@ from osmosis_ai import osmosis_rubric, evaluate_rubric
 def helpfulness_check(
     solution_str: str,
     ground_truth: str | None,
-    extra_info: dict
+    extra_info: dict,
+    **kwargs
 ) -> float:
     """Evaluate response helpfulness using an LLM."""
 
