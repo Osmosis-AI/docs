@@ -33,12 +33,6 @@
   ],
   "navigation": [
     {
-      "group": "Getting Started",
-      "pages": [
-        "introduction"
-      ]
-    },
-    {
       "group": "Python SDK",
       "pages": [
         "python-sdk/introduction",
