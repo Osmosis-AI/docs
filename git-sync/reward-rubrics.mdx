@@ -3,8 +3,6 @@ title: 'Reward Rubrics'
 description: 'Using LLMs to evaluate outputs with natural language criteria'
 ---
 
-# Reward Rubrics
-
 Reward rubrics leverage LLMs to evaluate outputs using natural language criteria. They use the `@osmosis_rubric` decorator and delegate scoring to a language model based on a rubric description.
 
 ## Basic Example
@@ -54,36 +52,18 @@ def compute_rubric_score_openai(
 
 ## Function Signature
 
-All rubric functions must follow this signature:
-
 ```python
 @osmosis_rubric
 def my_rubric_function(
     solution_str: str,      # The LLM output to evaluate
     ground_truth: str,      # The expected correct answer
-    extra_info: dict,       # Additional context/metadata
-    **kwargs                # Future extensibility (REQUIRED)
+    extra_info: dict,       # Additional context/metadata (required, no default)
+    **kwargs                # Future compatibility (REQUIRED)
 ) -> float:                 # Return score from the rubric
     pass
 ```
 
-<Warning>
-**IMPORTANT: The `**kwargs` parameter is required!**
-
-Even though `**kwargs` is not used in your function body, it **must** be included in the function signature. Without it, your function will fail during training with an error. This parameter is necessary for forward compatibility with the Osmosis platform.
-
-```python
-# ✅ Correct - includes **kwargs
-@osmosis_rubric
-def my_rubric(solution_str: str, ground_truth: str, extra_info: dict, **kwargs) -> float:
-    return evaluate_rubric(...)
-
-# ❌ Wrong - missing **kwargs (will cause errors during training!)
-@osmosis_rubric
-def my_rubric(solution_str: str, ground_truth: str, extra_info: dict) -> float:
-    return evaluate_rubric(...)
-```
-</Warning>
+<Snippet file="_includes/kwargs-requirement.mdx" />
 
 ## The `evaluate_rubric` Function
 
@@ -178,57 +158,9 @@ def anthropic_rubric(
     )
 ```
 
-### Google (Gemini)
-
-```python
-@osmosis_rubric
-def gemini_rubric(
-    solution_str: str,
-    ground_truth: str,
-    extra_info: dict,
-    **kwargs
-) -> float:
-    model_info = {
-        "provider": "google",
-        "model": "gemini-2.0-flash-exp",
-        "api_key": os.getenv("GOOGLE_API_KEY")
-    }
-
-    return evaluate_rubric(
-        rubric="Score the solution quality...",
-        solution_str=solution_str,
-        model_info=model_info,
-        ground_truth=ground_truth,
-        score_min=0.0,
-        score_max=1.0
-    )
-```
-
-### xAI (Grok)
-
-```python
-@osmosis_rubric
-def grok_rubric(
-    solution_str: str,
-    ground_truth: str,
-    extra_info: dict,
-    **kwargs
-) -> float:
-    model_info = {
-        "provider": "xai",
-        "model": "grok-2-1212",
-        "api_key": os.getenv("XAI_API_KEY")
-    }
-
-    return evaluate_rubric(
-        rubric="Assess the correctness...",
-        solution_str=solution_str,
-        model_info=model_info,
-        ground_truth=ground_truth,
-        score_min=0.0,
-        score_max=1.0
-    )
-```
+<Note>
+For additional providers (Google Gemini, xAI Grok, OpenRouter, Cerebras), see the [API Reference](/python-sdk/api-reference#supported-providers).
+</Note>
 
 ## Writing Effective Rubrics
 

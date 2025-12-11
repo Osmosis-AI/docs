@@ -28,13 +28,11 @@ def function_name(
 - `solution_str` (str, required) - Text to evaluate
 - `ground_truth` (str, required) - Reference answer
 - `extra_info` (dict, optional) - Additional context
-- `**kwargs` (required) - Future extensibility parameter (must be included even if not used)
+- `**kwargs` (required) - Future compatibility (see warning below)
 
 **Returns:** `float` - Score value
 
-<Warning>
-**IMPORTANT:** The `**kwargs` parameter is required! Without it, your function will fail during training. Include it even if you don't use it in your function body.
-</Warning>
+<Snippet file="_includes/kwargs-requirement.mdx" />
 
 **Example:**
 ```python
@@ -66,13 +64,11 @@ def function_name(
 - `solution_str` (str, required) - Text to evaluate
 - `ground_truth` (str | None, required) - Reference answer (can be None)
 - `extra_info` (dict, required) - Configuration and context
-- `**kwargs` (required) - Future extensibility parameter (must be included even if not used)
+- `**kwargs` (required) - Future compatibility (see warning below)
 
 **Returns:** `float` - Score value
 
-<Warning>
-**IMPORTANT:** The `**kwargs` parameter is required! Without it, your function will fail during training. Include it even if you don't use it in your function body.
-</Warning>
+<Snippet file="_includes/kwargs-requirement.mdx" />
 
 **Example:**
 ```python
@@ -202,16 +198,7 @@ except ModelNotFoundError as e:
 
 ---
 
-## Supported Providers
-
-| Provider | ID | Default API Key Env | Example Models |
-|----------|----|--------------------|----------------|
-| OpenAI | `openai` | `OPENAI_API_KEY` | gpt-5 |
-| Anthropic | `anthropic` | `ANTHROPIC_API_KEY` | claude-sonnet-4-5 |
-| Google Gemini | `gemini` | `GOOGLE_API_KEY` | gemini-2.5-flash |
-| xAI | `xai` | `XAI_API_KEY` | grok-4 |
-| OpenRouter | `openrouter` | `OPENROUTER_API_KEY` | 100+ models |
-| Cerebras | `cerebras` | `CEREBRAS_API_KEY` | llama3.1-405b |
+<Snippet file="_includes/supported-providers.mdx" />
 
 ---
 

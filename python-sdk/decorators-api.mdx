@@ -3,10 +3,6 @@ title: 'Advanced Usage'
 description: 'Advanced patterns and integration examples for the Osmosis AI SDK'
 ---
 
-# Advanced Usage Guide
-
-Learn advanced patterns for integrating the Osmosis AI SDK into your applications.
-
 ## Understanding Decorators
 
 ### @osmosis_reward vs @osmosis_rubric
@@ -25,38 +21,34 @@ def remote_fn(solution_str: str, ground_truth: str | None, extra_info: dict, **k
     return evaluate_rubric(...)
 ```
 
-<Warning>
-**IMPORTANT: The `**kwargs` parameter is required for both decorators!**
-
-Even though `**kwargs` is not used in your function body, it **must** be included in the function signature for both `@osmosis_reward` and `@osmosis_rubric` functions. Without it, your function will fail during training with an error. This parameter is necessary for forward compatibility with the Osmosis platform.
-</Warning>
+<Snippet file="_includes/kwargs-requirement.mdx" />
 
 ### Type Enforcement
 
 Both decorators enforce strict signatures at decoration time:
 
 ```python
-# ❌ Wrong parameter names
+# Wrong parameter names
 @osmosis_reward
 def invalid(text: str, reference: str, **kwargs) -> float:
     return 1.0
 
-# ❌ Missing type hints
+# Missing type hints
 @osmosis_reward
 def invalid(solution_str, ground_truth, extra_info=None, **kwargs):
     return 1.0
 
-# ❌ Wrong return type
+# Wrong return type
 @osmosis_reward
 def invalid(solution_str: str, ground_truth: str, extra_info: dict = None, **kwargs) -> str:
     return "score"
 
-# ❌ Missing **kwargs (will cause errors during training!)
+# Missing **kwargs (will cause errors during training!)
 @osmosis_reward
 def invalid(solution_str: str, ground_truth: str, extra_info: dict = None) -> float:
     return 1.0
 
-# ✅ Correct
+# Correct
 @osmosis_reward
 def valid(solution_str: str, ground_truth: str, extra_info: dict = None, **kwargs) -> float:
     return 1.0
@@ -123,7 +115,7 @@ from osmosis_ai import osmosis_rubric, evaluate_rubric
 
 @osmosis_rubric
 def fallback_evaluator(solution_str: str, ground_truth: str | None, extra_info: dict, **kwargs) -> float:
-    """Try multiple providers with automatic fallback."""
+    """Try multiple providers and return the average score."""
 
     providers = [
         {"provider": "openai", "model": "gpt-5"},
@@ -133,18 +125,22 @@ def fallback_evaluator(solution_str: str, ground_truth: str | None, extra_info: 
 
     rubric = extra_info.get("rubric", "Evaluate quality on 0-1 scale")
 
+    scores = []
     for model_info in providers:
         try:
-            return evaluate_rubric(
+            score = evaluate_rubric(
                 rubric=rubric,
                 solution_str=solution_str,
                 model_info=model_info,
                 ground_truth=ground_truth
             )
+            scores.append(score)
         except Exception as e:
             print(f"Failed with {model_info['provider']}: {e}")
             continue
 
+    if scores:
+        return sum(scores) / len(scores)
     return 0.0  # All providers failed
 ```
 
@@ -322,7 +318,7 @@ def safe_evaluate(solution_str: str) -> float:
 ### API Key Management
 
 ```python
-# ✅ Good: Use environment variables
+# Good: Use environment variables
 import os
 model_info = {
     "provider": "openai",
@@ -330,11 +326,11 @@ model_info = {
     "api_key_env": "OPENAI_API_KEY"
 }
 
-# ✅ Good: Load from .env
+# Good: Load from .env
 from dotenv import load_dotenv
 load_dotenv()
 
-# ❌ Bad: Hardcode keys
+# Bad: Hardcode keys
 model_info = {
     "provider": "openai",
     "model": "gpt-5",

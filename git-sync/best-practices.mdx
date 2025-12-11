@@ -3,8 +3,6 @@ title: 'Best Practices'
 description: 'Best practices and troubleshooting for Git Sync'
 ---
 
-# Best Practices
-
 This guide covers best practices for maintaining your Osmosis-synced repository and troubleshooting common issues.
 
 ## Documentation
@@ -351,10 +349,10 @@ venv/
 ### Review Permissions Carefully
 
 When connecting private repos:
-- ✅ Grant minimal required permissions
-- ✅ Review which repositories Osmosis can access
-- ✅ Use deploy keys for specific repo access
-- ✅ Regularly audit connected integrations
+- Grant minimal required permissions
+- Review which repositories Osmosis can access
+- Use deploy keys for specific repo access
+- Regularly audit connected integrations
 
 ### Validate Inputs
 
@@ -559,60 +557,60 @@ def instrumented_reward(solution_str: str, ground_truth: str, extra_info: dict =
 **Problem**: Repository not syncing to Osmosis
 
 **Solutions**:
-- ✅ Verify folder structure matches exactly (case-sensitive)
-- ✅ Check webhook settings in GitHub repository settings
-- ✅ Review Osmosis sync logs for specific errors
-- ✅ Ensure `pyproject.toml` includes all dependencies
-- ✅ Validate decorators are spelled correctly
+- Verify folder structure matches exactly (case-sensitive)
+- Check webhook settings in GitHub repository settings
+- Review Osmosis sync logs for specific errors
+- Ensure `pyproject.toml` includes all dependencies
+- Validate decorators are spelled correctly
 
 ### Tool Discovery Issues
 
 **Problem**: MCP tools not appearing in Osmosis
 
 **Solutions**:
-- ✅ Confirm `@mcp.tool()` decorator is present
-- ✅ Check tools are exported in `mcp/tools/__init__.py`:
+- Confirm `@mcp.tool()` decorator is present
+- Check tools are exported in `mcp/tools/__init__.py`:
   ```python
   from .math import multiply
   __all__ = ['multiply']
   ```
-- ✅ Verify type hints exist for all parameters and return values
-- ✅ Ensure no syntax errors in tool files
-- ✅ Check Osmosis platform logs for import errors
+- Verify type hints exist for all parameters and return values
+- Ensure no syntax errors in tool files
+- Check Osmosis platform logs for import errors
 
 ### Reward Function Issues
 
 **Problem**: Reward functions returning unexpected scores
 
 **Solutions**:
-- ✅ Test locally with sample inputs
-- ✅ Add print statements or logging
-- ✅ Verify input format matches expectations
-- ✅ Check error handling catches all edge cases
-- ✅ Ensure return type is `float`
+- Test locally with sample inputs
+- Add print statements or logging
+- Verify input format matches expectations
+- Check error handling catches all edge cases
+- Ensure return type is `float`
 
 ### Rubric Evaluation Issues
 
 **Problem**: Rubric scores inconsistent or errors
 
 **Solutions**:
-- ✅ Verify API key is set correctly
-- ✅ Check API key has sufficient credits/quota
-- ✅ Test with simpler rubric first
-- ✅ Add error handling around `evaluate_rubric` call
-- ✅ Use `return_details=True` to see evaluation reasoning
-- ✅ Verify model name is correct for provider
+- Verify API key is set correctly
+- Check API key has sufficient credits/quota
+- Test with simpler rubric first
+- Add error handling around `evaluate_rubric` call
+- Use `return_details=True` to see evaluation reasoning
+- Verify model name is correct for provider
 
 ### Import Errors
 
 **Problem**: `ModuleNotFoundError` or import failures
 
 **Solutions**:
-- ✅ Ensure all directories have `__init__.py` files
-- ✅ Verify imports use correct paths
-- ✅ Check dependencies are installed: `pip install -e .`
-- ✅ Use absolute imports from package root
-- ✅ Verify virtual environment is activated
+- Ensure all directories have `__init__.py` files
+- Verify imports use correct paths
+- Check dependencies are installed: `pip install -e .`
+- Use absolute imports from package root
+- Verify virtual environment is activated
 
 ## Next Steps
 

@@ -3,8 +3,6 @@ title: 'Reward Functions'
 description: 'Creating deterministic reward functions for LLM evaluation'
 ---
 
-# Reward Functions
-
 Reward functions provide deterministic, numeric scoring for LLM outputs. They use the `@osmosis_reward` decorator and return a float value representing the quality of the output.
 
 ## Basic Example
@@ -43,36 +41,18 @@ def numbers_match_reward(
 
 ## Function Signature
 
-All reward functions must follow this signature:
-
 ```python
 @osmosis_reward
 def my_reward_function(
     solution_str: str,      # The LLM output to evaluate
     ground_truth: str,      # The expected correct answer
     extra_info: dict = None,  # Additional context/metadata
-    **kwargs                # Future extensibility (REQUIRED)
+    **kwargs                # Future compatibility (REQUIRED)
 ) -> float:                 # Return score (typically 0.0 to 1.0)
     pass
 ```
 
-<Warning>
-**IMPORTANT: The `**kwargs` parameter is required!**
-
-Even though `**kwargs` is not used in your function body, it **must** be included in the function signature. Without it, your function will fail during training with an error. This parameter is necessary for forward compatibility with the Osmosis platform.
-
-```python
-# ✅ Correct - includes **kwargs
-@osmosis_reward
-def my_reward(solution_str: str, ground_truth: str, extra_info: dict = None, **kwargs) -> float:
-    return 1.0
-
-# ❌ Wrong - missing **kwargs (will cause errors during training!)
-@osmosis_reward
-def my_reward(solution_str: str, ground_truth: str, extra_info: dict = None) -> float:
-    return 1.0
-```
-</Warning>
+<Snippet file="_includes/kwargs-requirement.mdx" />
 
 ## Parameters
 
@@ -111,11 +91,7 @@ extra_info = {
 
 ### `**kwargs`
 
-**Required parameter** that captures any additional keyword arguments for future compatibility with the Osmosis platform.
-
-<Warning>
-This parameter must be included in all `@osmosis_reward` functions, even if you don't use it. Without `**kwargs`, your function will fail during training.
-</Warning>
+**Required parameter** for future compatibility. See the warning above for details.
 
 ## Return Value
 
@@ -138,49 +114,6 @@ def exact_match_reward(
 ) -> float:
     """Returns 1.0 for exact match, 0.0 otherwise"""
     return 1.0 if solution_str.strip() == ground_truth.strip() else 0.0
-```
-
-### Partial Credit
-
-```python
-@osmosis_reward
-def partial_credit_reward(
-    solution_str: str,
-    ground_truth: str,
-    extra_info: dict = None,
-    **kwargs
-) -> float:
-    """Returns partial credit based on keyword matches"""
-    keywords = ground_truth.lower().split()
-    solution = solution_str.lower()
-
-    matches = sum(1 for keyword in keywords if keyword in solution)
-    return matches / len(keywords) if keywords else 0.0
-```
-
-### Threshold-Based
-
-```python
-from difflib import SequenceMatcher
-
-@osmosis_reward
-def similarity_reward(
-    solution_str: str,
-    ground_truth: str,
-    extra_info: dict = None,
-    **kwargs
-) -> float:
-    """Returns score based on string similarity"""
-    ratio = SequenceMatcher(None, solution_str, ground_truth).ratio()
-
-    # Apply threshold: below 0.5 = 0.0, above 0.8 = 1.0
-    if ratio < 0.5:
-        return 0.0
-    elif ratio > 0.8:
-        return 1.0
-    else:
-        # Linear interpolation between thresholds
-        return (ratio - 0.5) / 0.3
 ```
 
 ### Multi-Criteria

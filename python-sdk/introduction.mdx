@@ -17,43 +17,21 @@ Osmosis AI helps you:
 
 ## Core Concepts
 
-### Two Evaluation Approaches
+Osmosis AI provides two evaluation approaches:
 
-**1. Local Reward Functions** - Fast, deterministic scoring
-```python
-from osmosis_ai import osmosis_reward
+**1. Local Reward Functions** - Fast, deterministic scoring (e.g., exact match, regex)
+**2. Remote Rubric Evaluation** - LLM-powered semantic judgment with natural language criteria
 
-@osmosis_reward
-def exact_match(solution_str: str, ground_truth: str, extra_info: dict = None, **kwargs) -> float:
-    return 1.0 if solution_str.strip() == ground_truth.strip() else 0.0
-```
-
-**2. Remote Rubric Evaluation** - LLM-powered semantic judgment
-```python
-from osmosis_ai import osmosis_rubric, evaluate_rubric
-
-@osmosis_rubric
-def helpfulness_check(solution_str: str, ground_truth: str | None, extra_info: dict, **kwargs) -> float:
-    return evaluate_rubric(
-        rubric="Evaluate how helpful and clear the response is.",
-        solution_str=solution_str,
-        model_info={"provider": "openai", "model": "gpt-5"}
-    )
-
-score = helpfulness_check(
-    solution_str="You can reset your password by clicking 'Forgot Password'.",
-    ground_truth=None,
-    extra_info={}
-)
-```
+See the [Quick Start](/python-sdk/quickstart) for code examples and hands-on tutorials.
 
 ### CLI Tool
 
-Batch process datasets with progress tracking:
+Batch evaluate datasets from the command line:
 ```bash
 osmosis eval --rubric <rubric_id> --data <path_to_data>
 ```
-Rubrics are defined in `rubric_configs.yaml` for reusability across evaluations.
+
+See [CLI Quick Start](/python-sdk/cli-quickstart) for details.
 
 ## Key Features
 

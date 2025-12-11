@@ -3,8 +3,6 @@ title: 'Set Your Own Repo'
 description: 'Sync your GitHub repository with Osmosis AI platform'
 ---
 
-# Set Your Own Repo
-
 The Osmosis AI platform supports automatic synchronization from GitHub repositories. You can store your MCP tools, reward functions, and reward rubrics in your own repository (public or private), and Osmosis will automatically discover and sync them.
 
 ## Why Use Git Sync?
@@ -29,27 +27,55 @@ Check out our reference implementation: [osmosis-git-sync-example](https://githu
 
 This example demonstrates the complete folder structure and code artifacts that the Osmosis GitHub integration discovers and syncs.
 
-## Quick Start
+## How It Works
 
-1. Create a repository with the required folder structure
-2. Implement your MCP tools, reward functions, or rubrics
-3. Push to GitHub
-4. Connect your repository to Osmosis
-5. Watch your components sync automatically
+1. **Structure** your repository with the required folders
+2. **Implement** your functions using the Osmosis AI decorators
+3. **Push** to GitHub (public or private)
+4. **Connect** your repository to the Osmosis platform
+5. **Sync** automatically - Osmosis discovers and deploys your components
+
+## When to Use Git Sync
+
+Choose Git Sync when you want to:
+- **Version control** evaluation logic alongside application code
+- **Collaborate** with your team using Git workflows
+- **Deploy** automatically through CI/CD
+- **Keep code private** while using the Osmosis platform
+- **Manage** multiple rubrics and functions in one place
+
+For quick local testing and development, use the [Python SDK](/python-sdk/introduction) directly instead.
+
+## Navigation Guide
+
+<Steps>
+  <Step title="New to Osmosis?">
+    Start with the [Python SDK Introduction](/python-sdk/introduction) to understand core concepts, then return here to learn about Git Sync deployment.
+  </Step>
+  <Step title="Ready to Set Up?">
+    Follow the [Folder Structure](/git-sync/folder-structure) guide to organize your repository correctly.
+  </Step>
+  <Step title="Building Components">
+    Implement [MCP Tools](/git-sync/mcp-tools), [Reward Functions](/git-sync/reward-functions), or [Reward Rubrics](/git-sync/reward-rubrics) based on your needs.
+  </Step>
+  <Step title="Best Practices">
+    Review [Best Practices](/git-sync/best-practices) for production-ready implementations.
+  </Step>
+</Steps>
 
 ## Next Steps
 
 <CardGroup cols={2}>
   <Card title="Folder Structure" icon="folder-tree" href="/git-sync/folder-structure">
-    Learn the required repository layout
+    Required repository layout
   </Card>
-  <Card title="Setup Guide" icon="rocket" href="/git-sync/setup-guide">
-    Step-by-step setup instructions
+  <Card title="Sync to Platform" icon="rocket" href="/git-sync/sync-repository-to-platform">
+    Connect your repository
   </Card>
   <Card title="MCP Tools" icon="wrench" href="/git-sync/mcp-tools">
-    Create custom MCP tools
+    Custom tool development
   </Card>
   <Card title="Best Practices" icon="star" href="/git-sync/best-practices">
-    Tips for success
+    Production guidelines
   </Card>
 </CardGroup>

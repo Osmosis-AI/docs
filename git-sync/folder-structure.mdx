@@ -7,24 +7,27 @@ description: 'Required repository structure for Osmosis Git Sync'
 
 Your repository must follow this structure for Osmosis to automatically discover your components:
 
-```
-your-repo/
-├── mcp/                           # MCP Tools
-│   ├── main.py                   # FastMCP server entry point
-│   ├── server/
-│   │   ├── __init__.py
-│   │   └── mcp_server.py        # FastMCP server definition
-│   └── tools/                    # Tool modules
-│       ├── __init__.py
-│       ├── math.py              # Example tool module
-│       └── ...
-├── reward_fn/                     # Reward Functions
-│   └── compute_reward.py         # @osmosis_reward functions
-├── reward_rubric/                 # Reward Rubrics
-│   ├── reward_rubric_openai.py   # @osmosis_rubric functions
-│   ├── reward_rubric_anthropic.py
-│   └── ...
-└── pyproject.toml                 # Python dependencies
+An example repository can be found here: https://github.com/Osmosis-AI/osmosis-git-sync-example
+
+```mermaid
+graph TD
+    A[your-repo/]
+    A --> B[mcp/]
+    B --> B1[main.py<br/>FastMCP server entry point]
+    B --> B2[server/]
+    B2 --> B2a[__init__.py]
+    B2 --> B2b[mcp_server.py<br/>FastMCP server definition]
+    B --> B3[tools/]
+    B3 --> B3a[__init__.py]
+    B3 --> B3b[math.py<br/>Example tool module]
+    B3 --> B3c[...]
+    A --> C[reward_fn/]
+    C --> C1[compute_reward.py<br/>@osmosis_reward functions]
+    A --> D[reward_rubric/]
+    D --> D1[reward_rubric_openai.py<br/>@osmosis_rubric functions]
+    D --> D2[reward_rubric_anthropic.py]
+    D --> D3[...]
+    A --> E[pyproject.toml<br/>Python dependencies]
 ```
 
 ## Directory Breakdown
