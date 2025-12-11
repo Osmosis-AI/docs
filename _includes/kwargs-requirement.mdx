@@ -4,11 +4,11 @@
 All reward functions and rubrics **must** include `**kwargs` in their signature for compatibility with the Osmosis platform. The platform may pass additional parameters in future versions, and omitting `**kwargs` will cause errors.
 
 ```python
-# ✅ Correct - includes **kwargs
+# Correct - includes **kwargs
 def my_function(solution_str: str, ground_truth: str | None, extra_info: dict, **kwargs) -> float:
     pass
 
-# ❌ Wrong - missing **kwargs
+# Wrong - missing **kwargs
 def my_function(solution_str: str, ground_truth: str | None, extra_info: dict) -> float:
     pass
 ```

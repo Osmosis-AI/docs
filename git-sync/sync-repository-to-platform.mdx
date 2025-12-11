@@ -3,8 +3,6 @@ title: 'Sync Repository to Platform'
 description: 'Step-by-step guide to setting up Git Sync with Osmosis'
 ---
 
-# Sync Repository to Platform
-
 This guide walks you through setting up a repository to sync with Osmosis AI platform.
 
 ## Prerequisites
@@ -382,30 +380,30 @@ For Osmosis platform:
 
 ### Sync Not Working
 
-- ✅ Verify folder structure matches exactly
-- ✅ Check that decorators are used correctly (`@mcp.tool()`, `@osmosis_reward`, `@osmosis_rubric`)
-- ✅ Ensure `pyproject.toml` includes all required dependencies
-- ✅ Review GitHub webhook settings in repository settings
+- Verify folder structure matches exactly
+- Check that decorators are used correctly (`@mcp.tool()`, `@osmosis_reward`, `@osmosis_rubric`)
+- Ensure `pyproject.toml` includes all required dependencies
+- Review GitHub webhook settings in repository settings
 
 ### Tools Not Appearing
 
-- ✅ Confirm `@mcp.tool()` decorator is present
-- ✅ Check that tools are exported in `mcp/tools/__init__.py`
-- ✅ Verify type hints are included for all parameters
-- ✅ Review Osmosis sync logs for errors
+- Confirm `@mcp.tool()` decorator is present
+- Check that tools are exported in `mcp/tools/__init__.py`
+- Verify type hints are included for all parameters
+- Review Osmosis sync logs for errors
 
 ### API Key Issues
 
-- ✅ For local testing, set environment variables properly
-- ✅ For Osmosis platform, configure secrets in dashboard settings
-- ✅ Never commit API keys to version control (use `.gitignore`)
-- ✅ Verify API keys are valid and have proper permissions
+- For local testing, set environment variables properly
+- For Osmosis platform, configure secrets in dashboard settings
+- Never commit API keys to version control (use `.gitignore`)
+- Verify API keys are valid and have proper permissions
 
 ### Import Errors
 
-- ✅ Ensure `__init__.py` files exist in all package directories
-- ✅ Check that imports use correct relative paths
-- ✅ Verify all dependencies are installed: `pip install -e .`
+- Ensure `__init__.py` files exist in all package directories
+- Check that imports use correct relative paths
+- Verify all dependencies are installed: `pip install -e .`
 
 ## Complete Example
 
