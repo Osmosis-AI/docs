@@ -27,6 +27,10 @@
       "url": "python-sdk"
     },
     {
+      "name": "Remote Rollout",
+      "url": "remote-rollout"
+    },
+    {
       "name": "Git Sync",
       "url": "git-sync"
     }
@@ -42,6 +46,15 @@
         "python-sdk/cli-quickstart",
         "python-sdk/cli-reference",
         "python-sdk/decorators-api"
+      ]
+    },
+    {
+      "group": "Remote Rollout",
+      "pages": [
+        "remote-rollout/overview",
+        "remote-rollout/quickstart",
+        "remote-rollout/agent-loop",
+        "remote-rollout/test-mode"
       ]
     },
     {
