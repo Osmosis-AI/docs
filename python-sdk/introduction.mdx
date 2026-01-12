@@ -1,75 +1,42 @@
 ---
-title: 'Python SDK Introduction'
-description: 'Get started with the Osmosis AI Python SDK'
+title: 'Python SDK'
+description: 'The osmosis-ai Python SDK for LLM evaluation and training'
 ---
 
 # Osmosis AI Python SDK
 
-The Osmosis AI Python SDK provides tools for evaluating LLM outputs using natural language rubrics and reward functions. It supports both local deterministic evaluation and remote LLM-based semantic evaluation across multiple providers.
+The `osmosis-ai` Python SDK provides tools for evaluating LLM outputs and building custom agents for reinforcement learning training.
 
-## What is Osmosis AI?
+## Choose Your Use Case
 
-Osmosis AI helps you:
-- **Evaluate LLM outputs** with natural language rubrics
-- **Create reward functions** for reinforcement learning and scoring
-- **Compare providers** across OpenAI, Anthropic, Gemini, xAI, and more
-- **Batch process evaluations** with a built-in CLI tool
+<CardGroup cols={2}>
+  <Card title="Git Sync" icon="code-branch" href="/git-sync/overview">
+    **Define reward functions and rubrics in your repository**
 
-## Core Concepts
+    Create `@osmosis_reward` and `@osmosis_rubric` functions that sync with the Osmosis platform for training evaluation.
+  </Card>
+  <Card title="Remote Rollout" icon="server" href="/remote-rollout/overview">
+    **Build custom agent loops for training**
 
-Osmosis AI provides two evaluation approaches:
+    Implement `RolloutAgentLoop` servers that integrate with Osmosis training infrastructure.
+  </Card>
+</CardGroup>
 
-**1. Local Reward Functions** - Fast, deterministic scoring (e.g., exact match, regex)
-**2. Remote Rubric Evaluation** - LLM-powered semantic judgment with natural language criteria
+## What's in This Section
 
-See the [Quick Start](/python-sdk/quickstart) for code examples and hands-on tutorials.
+| Page | Description |
+|------|-------------|
+| [Installation](/python-sdk/installation) | Install the SDK and configure API keys |
+| [API Reference](/python-sdk/api-reference) | Complete API documentation |
+| [CLI Reference](/python-sdk/cli-reference) | Command-line tool documentation |
 
-### CLI Tool
+## Quick Install
 
-Batch evaluate datasets from the command line:
 ```bash
-osmosis eval --rubric <rubric_id> --data <path_to_data>
+pip install osmosis-ai
 ```
 
-See [CLI Quick Start](/python-sdk/cli-quickstart) for details.
-
-## Key Features
-
-<CardGroup cols={2}>
-  <Card title="LLM-Based Rubrics" icon="brain">
-    Natural language evaluation criteria with semantic understanding
-  </Card>
-  <Card title="Local Reward Functions" icon="bolt">
-    Fast, deterministic functions for exact match and simple checks
-  </Card>
-  <Card title="Multi-Provider Support" icon="network-wired">
-    OpenAI, Anthropic, Gemini, xAI, OpenRouter, and Cerebras
-  </Card>
-  <Card title="CLI Tool" icon="terminal">
-    Batch evaluations with statistics and result tracking
-  </Card>
-</CardGroup>
-
-## Use Cases
-
-- **Quality Assurance** - Evaluate LLM responses before serving to users
-- **Model Comparison** - Compare outputs across models and providers
-- **Reinforcement Learning** - Create reward functions for training
-- **A/B Testing** - Measure impact of prompt variations
-
-## Next Steps
-
-<CardGroup cols={2}>
-  <Card title="Installation" icon="download" href="/python-sdk/installation">
-    Install the SDK and set up API keys
-  </Card>
-  <Card title="Quick Start" icon="rocket" href="/python-sdk/quickstart">
-    Your first evaluation in 5 minutes
-  </Card>
-  <Card title="CLI Quick Start" icon="terminal" href="/python-sdk/cli-quickstart">
-    Batch evaluate datasets with the CLI
-  </Card>
-  <Card title="API Reference" icon="book" href="/python-sdk/api-reference">
-    Complete API documentation
-  </Card>
-</CardGroup>
+For Remote Rollout servers:
+```bash
+pip install "osmosis-ai[server]"
+```
