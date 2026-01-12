@@ -19,10 +19,9 @@ This guide helps you quickly create a Remote Rollout server. We provide a ready-
   </Step>
 
   <Step title="Clone and Install Dependencies">
-    Clone your newly created repository and navigate to the `rollout_server` directory to install dependencies:
+    Clone your newly created repository and install dependencies:
 
     ```bash
-    cd rollout_server
     uv sync
     ```
 
@@ -32,6 +31,25 @@ This guide helps you quickly create a Remote Rollout server. We provide a ready-
     pip install osmosis-ai[server]
     ```
     </Note>
+  </Step>
+
+  <Step title="Login to Osmosis Platform">
+    Authenticate with the Osmosis Platform to enable server registration:
+
+    ```bash
+    uv run osmosis login
+    ```
+
+    This will open your browser for authentication. After logging in, your credentials are saved to `~/.config/osmosis/credentials.json`.
+
+    You can verify your login status with:
+    ```bash
+    uv run osmosis whoami
+    ```
+
+    <Tip>
+    The server uses your credentials to register with Osmosis Platform, enabling the training system to discover and connect to your server.
+    </Tip>
   </Step>
 
   <Step title="Run the Server">
@@ -45,7 +63,7 @@ This guide helps you quickly create a Remote Rollout server. We provide a ready-
     ```
     INFO:     Osmosis RolloutServer starting...
     INFO:     Agent: calculator
-    INFO:     Tools: 1
+    INFO:     Tools: 4
     INFO:     Uvicorn running on http://0.0.0.0:9000
     ```
   </Step>
@@ -56,12 +74,13 @@ This guide helps you quickly create a Remote Rollout server. We provide a ready-
 The template repository contains the following key components:
 
 ```
-rollout_server/
+my-rollout-server/
 ├── server.py           # Agent Loop main file
 ├── tools.py            # Tool definitions and execution logic
 ├── rewards.py          # Reward computation (optional)
-├── multiply.parquet    # Test dataset
-└── pyproject.toml      # Project dependencies
+├── test_data.jsonl     # Test dataset
+├── pyproject.toml      # Project dependencies
+└── README.md           # Documentation
 ```
 
 ### Core Concept: Agent Loop
@@ -177,24 +196,24 @@ Expected output:
 ```
 ✓ Agent loop validated successfully
   Name: calculator
-  Tools: 1 (multiply)
+  Tools: 4 (add, subtract, multiply, divide)
 ```
 
 ### Local Testing
 
-The template includes a `multiply.parquet` test dataset. Set your API key and run tests:
+The template includes a `test_data.jsonl` test dataset. Set your API key and run tests:
 
 ```bash
 export OPENAI_API_KEY="your-key-here"
 
 # Run batch tests
-uv run osmosis test -m server:agent_loop -d multiply.parquet
+uv run osmosis test -m server:agent_loop -d test_data.jsonl
 
 # Limit number of tests
-uv run osmosis test -m server:agent_loop -d multiply.parquet --limit 10
+uv run osmosis test -m server:agent_loop -d test_data.jsonl --limit 10
 
 # Use a different model
-uv run osmosis test -m server:agent_loop -d multiply.parquet --model anthropic/claude-sonnet-4-20250514
+uv run osmosis test -m server:agent_loop -d test_data.jsonl --model anthropic/claude-sonnet-4-20250514
 ```
 
 ### Interactive Debugging
@@ -202,7 +221,7 @@ uv run osmosis test -m server:agent_loop -d multiply.parquet --model anthropic/c
 Step through agent execution for debugging:
 
 ```bash
-uv run osmosis test -m server:agent_loop -d multiply.parquet --interactive
+uv run osmosis test -m server:agent_loop -d test_data.jsonl --interactive
 ```
 
 Interactive commands:
@@ -238,13 +257,17 @@ logs/
     └── rollout-def456.jsonl
 ```
 
-### Local Mode (No Auth)
+### Local Mode (No Login Required)
 
-Skip authentication for local testing:
+Skip login and platform registration for local development:
 
 ```bash
 uv run osmosis serve -m server:agent_loop --local
 ```
+
+<Warning>
+Local mode disables API key authentication and platform registration. This is intended for development only and should not be used in production.
+</Warning>
 
 ## Test Dataset Format
 
