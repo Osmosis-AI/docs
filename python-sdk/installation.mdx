@@ -6,7 +6,7 @@ description: 'Install and configure the Osmosis AI Python SDK'
 
 ## Requirements
 
-- Python 3.9 or higher
+- Python 3.10 or higher
 - pip package manager
 
 ## Install via pip
@@ -15,7 +15,25 @@ description: 'Install and configure the Osmosis AI Python SDK'
 pip install osmosis-ai
 ```
 
-This installs both the Python library and the CLI tool.
+This installs the core Python library and CLI tool.
+
+### Optional Dependencies
+
+Install additional features based on your use case:
+
+```bash
+# For running remote rollout servers (FastAPI + Uvicorn)
+pip install "osmosis-ai[server]"
+
+# For configuration management (pydantic-settings)
+pip install "osmosis-ai[config]"
+
+# For local testing with cloud LLMs
+pip install "osmosis-ai[test-mode]"
+
+# Install everything
+pip install "osmosis-ai[full]"
+```
 
 ## Set Up API Keys
 

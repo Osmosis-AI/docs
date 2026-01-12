@@ -371,6 +371,79 @@ agent_loop = CalculatorAgent()
 app = create_app(agent_loop)
 ```
 
+## Server Configuration
+
+### create_app() Parameters
+
+The `create_app()` function accepts several optional parameters for fine-tuning server behavior:
+
+```python
+from osmosis_ai.rollout import create_app, RolloutSettings
+
+app = create_app(
+    agent_loop,
+    max_concurrent=10,              # Max concurrent rollouts (default: unlimited)
+    record_ttl_seconds=3600.0,      # How long to keep rollout records (default: 1 hour)
+    settings=RolloutSettings(...),  # Custom settings (see below)
+    debug_dir="./logs",             # Directory for debug logs
+    on_startup=async_startup_fn,    # Async function called on server start
+    on_shutdown=async_shutdown_fn,  # Async function called on server stop
+)
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `agent_loop` | `RolloutAgentLoop` | Required | Your agent loop implementation |
+| `max_concurrent` | `int \| None` | `None` | Maximum concurrent rollouts (None = unlimited) |
+| `record_ttl_seconds` | `float \| None` | `3600.0` | TTL for rollout records in seconds |
+| `settings` | `RolloutSettings \| None` | `None` | Custom configuration settings |
+| `debug_dir` | `str \| None` | `None` | Directory for debug logging |
+| `on_startup` | `Callable[[], Awaitable[None]] \| None` | `None` | Async startup callback |
+| `on_shutdown` | `Callable[[], Awaitable[None]] \| None` | `None` | Async shutdown callback |
+
+### RolloutSettings Configuration
+
+For advanced configuration, use `RolloutSettings` with `RolloutClientSettings`:
+
+```python
+from osmosis_ai.rollout.config import RolloutSettings, RolloutClientSettings
+
+settings = RolloutSettings(
+    client=RolloutClientSettings(
+        timeout_seconds=300.0,          # HTTP client timeout
+        max_retries=3,                  # Max retry attempts
+        complete_rollout_retries=2,     # Retries for /completed endpoint
+        retry_base_delay=1.0,           # Initial retry delay (seconds)
+        retry_max_delay=30.0,           # Maximum retry delay (seconds)
+        max_connections=100,            # HTTP connection pool size
+        max_keepalive_connections=20,   # Keep-alive connections
+    )
+)
+
+app = create_app(agent_loop, settings=settings)
+```
+
+### Environment Variables
+
+All client settings can be configured via environment variables:
+
+| Environment Variable | Description | Default |
+|---------------------|-------------|---------|
+| `OSMOSIS_ROLLOUT_CLIENT_TIMEOUT_SECONDS` | HTTP timeout | `300.0` |
+| `OSMOSIS_ROLLOUT_CLIENT_MAX_RETRIES` | Max retries | `3` |
+| `OSMOSIS_ROLLOUT_CLIENT_COMPLETE_ROLLOUT_RETRIES` | Retries for /completed | `2` |
+| `OSMOSIS_ROLLOUT_CLIENT_RETRY_BASE_DELAY` | Initial retry delay | `1.0` |
+| `OSMOSIS_ROLLOUT_CLIENT_RETRY_MAX_DELAY` | Max retry delay | `30.0` |
+| `OSMOSIS_ROLLOUT_CLIENT_MAX_CONNECTIONS` | Connection pool size | `100` |
+| `OSMOSIS_ROLLOUT_CLIENT_MAX_KEEPALIVE_CONNECTIONS` | Keep-alive connections | `20` |
+
+Example:
+```bash
+export OSMOSIS_ROLLOUT_CLIENT_TIMEOUT_SECONDS=120
+export OSMOSIS_ROLLOUT_CLIENT_MAX_RETRIES=5
+osmosis serve -m server:agent_loop
+```
+
 <Note>
 The `get_last_assistant_content` helper function (seen in some examples) is **purely optional** - it's only useful for logging or reward computation. It's not required by the SDK.
 </Note>

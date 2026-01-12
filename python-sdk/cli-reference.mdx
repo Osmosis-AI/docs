@@ -26,7 +26,87 @@ osmosis [command] [options]
 
 ---
 
-## Commands
+## Authentication Commands
+
+### login
+
+Authenticate with the Osmosis AI platform.
+
+#### Usage
+
+```bash
+osmosis login
+```
+
+This command opens a browser for OAuth authentication. After successful login, your CLI session will be authenticated and credentials stored locally.
+
+---
+
+### logout
+
+Log out and revoke CLI token.
+
+#### Usage
+
+```bash
+osmosis logout
+```
+
+---
+
+### whoami
+
+Display current authenticated user and workspace information.
+
+#### Usage
+
+```bash
+osmosis whoami
+```
+
+#### Output
+
+```
+Logged in as: user@example.com
+Workspace: My Workspace (ws_abc123)
+```
+
+---
+
+### workspace
+
+Manage workspaces.
+
+#### Usage
+
+```bash
+osmosis workspace [subcommand]
+```
+
+#### Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| `list` | List all accessible workspaces |
+| `current` | Show current active workspace |
+| `switch <workspace_id>` | Switch to a different workspace |
+
+#### Examples
+
+```bash
+# List all workspaces
+osmosis workspace list
+
+# Show current workspace
+osmosis workspace current
+
+# Switch workspace
+osmosis workspace switch ws_abc123
+```
+
+---
+
+## Evaluation Commands
 
 ### preview
 
@@ -278,7 +358,7 @@ The output JSON file contains detailed results:
         {
           "score": 0.85,
           "explanation": "The response directly addresses the question...",
-          "raw_payload": {...},
+          "raw": {...},
           "duration_ms": 890
         }
       ],
