@@ -3,24 +3,70 @@ title: 'Quick Start'
 description: 'Build and test a remote rollout agent in 5 minutes'
 ---
 
-This guide walks you through creating a simple calculator agent that demonstrates the core concepts of Remote Rollout.
+This guide helps you quickly create a Remote Rollout server. We provide a ready-to-use template repository that you can use to get started immediately.
 
-## Prerequisites
+## Create Your Project from the Template
 
-- Python 3.11+
-- An OpenAI API key (or another LLM provider)
+<Steps>
+  <Step title="Create Repository">
+    Visit our official template repository:
 
-## Step 1: Install the SDK
+    <Card title="osmosis-remote-rollout-example" icon="github" href="https://github.com/Osmosis-AI/osmosis-remote-rollout-example">
+      Click the **"Use this template"** button in the top-right corner to create your own repository based on this template.
+    </Card>
 
-```bash
-pip install osmosis-ai[server]
+    This template includes a complete project structure, example code, and test data so you can start developing immediately.
+  </Step>
+
+  <Step title="Clone and Install Dependencies">
+    Clone your newly created repository and navigate to the `rollout_server` directory to install dependencies:
+
+    ```bash
+    cd rollout_server
+    uv sync
+    ```
+
+    <Note>
+    If you don't have `uv` installed, you can also use pip:
+    ```bash
+    pip install osmosis-ai[server]
+    ```
+    </Note>
+  </Step>
+
+  <Step title="Run the Server">
+    Start the server using the SDK CLI:
+
+    ```bash
+    uv run osmosis serve -m server:agent_loop
+    ```
+
+    You should see output similar to:
+    ```
+    INFO:     Osmosis RolloutServer starting...
+    INFO:     Agent: calculator
+    INFO:     Tools: 1
+    INFO:     Uvicorn running on http://0.0.0.0:9000
+    ```
+  </Step>
+</Steps>
+
+## Template Structure
+
+The template repository contains the following key components:
+
+```
+rollout_server/
+├── server.py           # Agent Loop main file
+├── tools.py            # Tool definitions and execution logic
+├── rewards.py          # Reward computation (optional)
+├── multiply.parquet    # Test dataset
+└── pyproject.toml      # Project dependencies
 ```
 
-This installs the core SDK plus FastAPI and uvicorn for running the server.
+### Core Concept: Agent Loop
 
-## Step 2: Create Your Agent
-
-Create `server.py`:
+The Agent Loop is the core of Remote Rollout. It inherits from `RolloutAgentLoop` and implements two required methods:
 
 ```python
 from osmosis_ai.rollout import (
@@ -31,7 +77,64 @@ from osmosis_ai.rollout import (
     create_app,
 )
 
-# Tool definitions in OpenAI format
+class CalculatorAgent(RolloutAgentLoop):
+    """Simple calculator agent example"""
+    
+    name = "calculator"  # REQUIRED: unique agent identifier
+
+    def get_tools(self, request: RolloutRequest):
+        """REQUIRED: Return available tools for this agent
+        
+        Called when /v1/rollout/init request is received.
+        The returned tools are included in the InitResponse sent to the training platform.
+        """
+        return CALCULATOR_TOOLS
+
+    async def run(self, ctx: RolloutContext) -> RolloutResult:
+        """REQUIRED: Execute the agent loop
+        
+        This is where you implement your agent logic:
+        1. Call the LLM to get a response
+        2. Execute tool calls
+        3. Continue the conversation until completion
+        """
+        messages = list(ctx.request.messages)
+
+        for turn in range(ctx.request.max_turns):
+            # Call LLM
+            result = await ctx.chat(messages, **ctx.request.completion_params)
+            messages.append(result.message)
+
+            # Check if done (no tool calls)
+            if not result.has_tool_calls:
+                break
+
+            # Execute tool calls
+            for tool_call in result.tool_calls:
+                # ... parse and execute tool ...
+                output = await execute_tool(tool_call)
+                
+                messages.append({
+                    "role": "tool",
+                    "tool_call_id": tool_call.get("id"),
+                    "content": str(output)
+                })
+                ctx.record_tool_call()  # Optional: record metrics
+
+        return ctx.complete(messages)
+
+# Export agent instance for CLI
+agent_loop = CalculatorAgent()
+
+# Create FastAPI app
+app = create_app(agent_loop)
+```
+
+### Tool Definitions
+
+Tools are defined using the OpenAI function calling format:
+
+```python
 CALCULATOR_TOOLS = [
     {
         "type": "function",
@@ -49,89 +152,25 @@ CALCULATOR_TOOLS = [
         }
     }
 ]
-
-
-async def execute_multiply(a: float, b: float) -> float:
-    """Execute multiply tool."""
-    return round(a * b, 4)
-
-
-class CalculatorAgent(RolloutAgentLoop):
-    """Simple calculator agent demonstrating Remote Rollout."""
-    
-    name = "calculator"  # REQUIRED: unique agent identifier
-
-    def get_tools(self, request: RolloutRequest):
-        """REQUIRED: Return available tools for this agent.
-        
-        Called when /v1/rollout/init is received.
-        The returned tools are included in the InitResponse.
-        """
-        return CALCULATOR_TOOLS
-
-    async def run(self, ctx: RolloutContext) -> RolloutResult:
-        """REQUIRED: Execute the agent loop."""
-        messages = list(ctx.request.messages)
-
-        for turn in range(ctx.request.max_turns):
-            # Call LLM
-            result = await ctx.chat(messages, **ctx.request.completion_params)
-            messages.append(result.message)
-
-            # Check if agent is done
-            if not result.has_tool_calls:
-                break
-
-            # Execute tool calls
-            for tool_call in result.tool_calls:
-                fn = tool_call.get("function", {})
-                name = fn.get("name")
-                args = fn.get("arguments", {})
-                
-                if isinstance(args, str):
-                    import json
-                    args = json.loads(args)
-                
-                if name == "multiply":
-                    output = await execute_multiply(args["a"], args["b"])
-                else:
-                    output = f"Unknown tool: {name}"
-                
-                messages.append({
-                    "role": "tool",
-                    "tool_call_id": tool_call.get("id"),
-                    "content": str(output)
-                })
-                ctx.record_tool_call()  # OPTIONAL: for metrics
-
-        # reward parameter is optional - only required if platform 
-        # expects reward computation in the rollout server
-        return ctx.complete(messages)
-
-
-# Export agent instance for CLI
-agent_loop = CalculatorAgent()
-
-# Create FastAPI app
-app = create_app(agent_loop)
 ```
 
 <Note>
-**Required Methods:**
-- `get_tools()` - Returns tools when `/v1/rollout/init` is received
-- `run()` - Executes your agent loop
-
-**Optional Features:**
-- `ctx.record_tool_call()` - Metrics tracking
-- `reward` in `ctx.complete()` - Only if platform expects reward from rollout server
+**Key Methods:**
+- `get_tools()` - Returns tool definitions when `/v1/rollout/init` is called
+- `run()` - Executes your agent loop logic
+- `ctx.chat()` - Calls the training platform's LLM endpoint
+- `ctx.record_tool_call()` - Optional, records tool call count for metrics
+- `ctx.complete()` - Returns the final result
 </Note>
 
-## Step 3: Validate Your Agent
+## Validation and Testing
 
-Before running, validate your implementation:
+### Validate Agent Configuration
+
+Before running, validate your agent implementation using the CLI:
 
 ```bash
-osmosis validate -m server:agent_loop
+uv run osmosis validate -m server:agent_loop
 ```
 
 Expected output:
@@ -141,72 +180,29 @@ Expected output:
   Tools: 1 (multiply)
 ```
 
-## Step 4: Run the Server
+### Local Testing
 
-Start the server:
-
-```bash
-osmosis serve -m server:agent_loop
-```
-
-The server starts on port 9000 by default. You should see:
-
-```
-INFO:     Osmosis RolloutServer starting...
-INFO:     Agent: calculator
-INFO:     Tools: 1
-INFO:     Uvicorn running on http://0.0.0.0:9000
-```
-
-## Step 5: Test Locally
-
-Create a test dataset `test_data.jsonl`:
-
-```jsonl
-{"system_prompt": "You are a calculator assistant. Use the multiply tool to solve problems. Always show your final answer with #### prefix.", "user_prompt": "What is 7 times 8?", "ground_truth": "56"}
-{"system_prompt": "You are a calculator assistant. Use the multiply tool to solve problems. Always show your final answer with #### prefix.", "user_prompt": "What is 12.5 times 4?", "ground_truth": "50"}
-```
-
-Set your API key:
+The template includes a `multiply.parquet` test dataset. Set your API key and run tests:
 
 ```bash
 export OPENAI_API_KEY="your-key-here"
+
+# Run batch tests
+uv run osmosis test -m server:agent_loop -d multiply.parquet
+
+# Limit number of tests
+uv run osmosis test -m server:agent_loop -d multiply.parquet --limit 10
+
+# Use a different model
+uv run osmosis test -m server:agent_loop -d multiply.parquet --model anthropic/claude-sonnet-4-20250514
 ```
 
-Run tests:
+### Interactive Debugging
+
+Step through agent execution for debugging:
 
 ```bash
-osmosis test -m server:agent_loop -d test_data.jsonl
-```
-
-Example output:
-```
-osmosis-rollout-test v0.2.8
-Loading agent: server:agent_loop
-  Agent name: calculator
-Loading dataset: test_data.jsonl
-  Total rows: 2
-Initializing provider: openai
-  Model: gpt-4o
-
-Running tests...
-[1/2] Row 0: OK (2.3s, 156 tokens)
-[2/2] Row 1: OK (1.8s, 142 tokens)
-
-Summary:
-  Total: 2
-  Passed: 2
-  Failed: 0
-  Duration: 4.1s
-  Total tokens: 298
-```
-
-## Step 6: Interactive Debugging
-
-Debug individual rows step-by-step:
-
-```bash
-osmosis test -m server:agent_loop -d test_data.jsonl --interactive
+uv run osmosis test -m server:agent_loop -d multiply.parquet --interactive
 ```
 
 Interactive commands:
@@ -218,42 +214,49 @@ Interactive commands:
 
 ## Development Tips
 
-### Enable Auto-Reload
+### Enable Hot Reload
 
-For development, enable auto-reload to pick up code changes:
+Enable auto-reload during development to automatically restart the server when code changes:
 
 ```bash
-osmosis serve -m server:agent_loop --reload
+uv run osmosis serve -m server:agent_loop --reload
 ```
 
 ### Enable Debug Logging
 
-Write execution traces for debugging:
+Write execution traces to files for debugging:
 
 ```bash
-osmosis serve -m server:agent_loop --log ./logs
+uv run osmosis serve -m server:agent_loop --log ./logs
+```
+
+Log file structure:
+```
+logs/
+└── {timestamp}/
+    ├── rollout-abc123.jsonl
+    └── rollout-def456.jsonl
 ```
 
 ### Local Mode (No Auth)
 
-For local testing without authentication:
+Skip authentication for local testing:
 
 ```bash
-osmosis serve -m server:agent_loop --local
+uv run osmosis serve -m server:agent_loop --local
 ```
 
-## Project Structure
+## Test Dataset Format
 
-A typical project looks like:
+Test datasets must include the following columns:
 
-```
-my-agent/
-├── server.py         # Agent loop + FastAPI app
-├── tools.py          # Tool definitions and execution
-├── rewards.py        # Reward computation
-├── test_data.jsonl   # Test dataset
-└── pyproject.toml    # Dependencies
-```
+| Column | Description |
+|--------|-------------|
+| `system_prompt` | System prompt for the LLM |
+| `user_prompt` | User message to start conversation |
+| `ground_truth` | Expected output (for reward computation) |
+
+Supported formats: `.json`, `.jsonl`, `.parquet`
 
 ## Next Steps
 
@@ -263,8 +266,5 @@ my-agent/
   </Card>
   <Card title="Test Mode" icon="flask" href="/remote-rollout/test-mode">
     Master the testing workflow
-  </Card>
-  <Card title="Example Repository" icon="github" href="https://github.com/Osmosis-AI/osmosis-remote-rollout-example">
-    Full working example
   </Card>
 </CardGroup>
