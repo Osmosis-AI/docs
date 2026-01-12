@@ -3,7 +3,7 @@ title: 'CLI Reference'
 description: 'Complete reference for the osmosis-ai command-line interface'
 ---
 
-The osmosis-ai CLI provides two main commands: `preview` for inspecting configurations and `eval` for running evaluations.
+The osmosis-ai CLI provides commands for rubric evaluation and remote rollout server management.
 
 ## Installation
 
@@ -26,7 +26,87 @@ osmosis [command] [options]
 
 ---
 
-## Commands
+## Authentication Commands
+
+### login
+
+Authenticate with the Osmosis AI platform.
+
+#### Usage
+
+```bash
+osmosis login
+```
+
+This command opens a browser for OAuth authentication. After successful login, your CLI session will be authenticated and credentials stored locally.
+
+---
+
+### logout
+
+Log out and revoke CLI token.
+
+#### Usage
+
+```bash
+osmosis logout
+```
+
+---
+
+### whoami
+
+Display current authenticated user and workspace information.
+
+#### Usage
+
+```bash
+osmosis whoami
+```
+
+#### Output
+
+```
+Logged in as: user@example.com
+Workspace: My Workspace (ws_abc123)
+```
+
+---
+
+### workspace
+
+Manage workspaces.
+
+#### Usage
+
+```bash
+osmosis workspace [subcommand]
+```
+
+#### Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| `list` | List all accessible workspaces |
+| `current` | Show current active workspace |
+| `switch <workspace_id>` | Switch to a different workspace |
+
+#### Examples
+
+```bash
+# List all workspaces
+osmosis workspace list
+
+# Show current workspace
+osmosis workspace current
+
+# Switch workspace
+osmosis workspace switch ws_abc123
+```
+
+---
+
+## Evaluation Commands
 
 ### preview
 
@@ -278,7 +358,7 @@ The output JSON file contains detailed results:
         {
           "score": 0.85,
           "explanation": "The response directly addresses the question...",
-          "raw_payload": {...},
+          "raw": {...},
           "duration_ms": 890
         }
       ],
@@ -464,13 +544,168 @@ ls -lh ~/.cache/osmosis/eval_result/
 
 ---
 
+---
+
+## Remote Rollout Commands
+
+The CLI also provides commands for running and testing remote rollout servers. See the [Remote Rollout documentation](/remote-rollout/overview) for the complete guide.
+
+### serve
+
+Start a RolloutServer for an agent loop implementation.
+
+#### Usage
+
+```bash
+osmosis serve -m <module:attribute> [options]
+```
+
+#### Required Options
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--module` | `-m` | string | Module path to the agent loop (e.g., `my_agent:agent_loop`) |
+
+#### Optional Parameters
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--port` | `-p` | integer | `9000` | Port to bind to |
+| `--host` | `-H` | string | `0.0.0.0` | Host to bind to |
+| `--no-validate` | | flag | `false` | Skip agent loop validation |
+| `--reload` | | flag | `false` | Enable auto-reload for development |
+| `--log-level` | | string | `info` | Uvicorn log level (debug/info/warning/error/critical) |
+| `--log` | | string | | Enable logging to specified directory |
+| `--api-key` | | string | auto-generated | API key for TrainGate authentication |
+| `--local` | | flag | `false` | Local debug mode (disable auth & registration) |
+| `--skip-register` | | flag | `false` | Skip Osmosis Platform registration |
+
+#### Examples
+
+```bash
+# Start server with validation (default port 9000)
+osmosis serve -m server:agent_loop
+
+# Specify port
+osmosis serve -m server:agent_loop -p 8080
+
+# Enable debug logging
+osmosis serve -m server:agent_loop --log ./rollout_logs
+
+# Enable auto-reload for development
+osmosis serve -m server:agent_loop --reload
+
+# Local debug mode (no auth)
+osmosis serve -m server:agent_loop --local
+```
+
+---
+
+### validate
+
+Validate a RolloutAgentLoop implementation without starting the server.
+
+#### Usage
+
+```bash
+osmosis validate -m <module:attribute> [options]
+```
+
+#### Options
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--module` | `-m` | string | Module path to the agent loop |
+| `--verbose` | `-v` | flag | Show detailed validation output |
+
+#### Examples
+
+```bash
+# Validate agent loop
+osmosis validate -m server:agent_loop
+
+# Verbose output
+osmosis validate -m server:agent_loop -v
+```
+
+---
+
+### test
+
+Test a RolloutAgentLoop against a dataset using cloud LLM providers.
+
+#### Usage
+
+```bash
+osmosis test -m <module:attribute> -d <dataset> [options]
+```
+
+#### Required Options
+
+| Option | Short | Type | Description |
+|--------|-------|------|-------------|
+| `--module` | `-m` | string | Module path to the agent loop |
+| `--dataset` | `-d` | string | Path to dataset file (.json, .jsonl, .parquet) |
+
+#### Optional Parameters
+
+| Option | Short | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--model` | | string | `gpt-4o` | Model name (e.g., `anthropic/claude-sonnet-4-20250514`) |
+| `--max-turns` | | integer | `10` | Max agent turns per row |
+| `--temperature` | | float | | LLM sampling temperature |
+| `--max-tokens` | | integer | | Maximum tokens per completion |
+| `--limit` | | integer | all | Max rows to test |
+| `--offset` | | integer | `0` | Rows to skip |
+| `--output` | `-o` | string | | Output JSON file for results |
+| `--quiet` | `-q` | flag | `false` | Suppress progress output |
+| `--debug` | | flag | `false` | Enable debug output |
+| `--interactive` | `-i` | flag | `false` | Enable interactive mode |
+| `--row` | | integer | | Initial row for interactive mode |
+| `--api-key` | | string | | API key for LLM provider |
+| `--base-url` | | string | | Base URL for OpenAI-compatible APIs |
+
+#### Examples
+
+```bash
+# Batch test with GPT-4o (default)
+osmosis test -m server:agent_loop -d multiply.parquet
+
+# Use Claude
+osmosis test -m server:agent_loop -d data.jsonl --model anthropic/claude-sonnet-4-20250514
+
+# Test subset of data
+osmosis test -m server:agent_loop -d data.jsonl --limit 10
+
+# Save results
+osmosis test -m server:agent_loop -d data.jsonl -o results.json
+
+# Interactive debugging
+osmosis test -m server:agent_loop -d data.jsonl --interactive
+```
+
+#### Interactive Mode Commands
+
+| Command | Description |
+|---------|-------------|
+| `n` | Execute next LLM call |
+| `c` | Continue to completion |
+| `m` | Show message history |
+| `t` | Show available tools |
+| `q` | Quit session |
+
+---
+
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Quick Start" icon="rocket" href="/python-sdk/cli-quickstart">
-    New to the CLI? Start with the quick start guide
+  <Card title="Git Sync" icon="code-branch" href="/git-sync/overview">
+    Define reward functions and rubrics
   </Card>
-  <Card title="Decorators & API" icon="code" href="/python-sdk/decorators-api">
-    Learn about programmatic usage with Python decorators
+  <Card title="Remote Rollout" icon="server" href="/remote-rollout/overview">
+    Build custom agent loops
+  </Card>
+  <Card title="API Reference" icon="book" href="/python-sdk/api-reference">
+    Complete API documentation
   </Card>
 </CardGroup>

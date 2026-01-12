@@ -1,0 +1,328 @@
+---
+title: 'Test Mode'
+description: 'Test agent loops locally with external LLM providers'
+---
+
+Test Mode allows you to validate your agent implementation locally using cloud LLM providers (OpenAI, Anthropic, etc.) before deploying to the Osmosis training infrastructure.
+
+## Overview
+
+```bash
+osmosis test -m <module:agent> -d <dataset> [options]
+```
+
+Test Mode:
+- Runs your agent loop against a dataset
+- Uses external LLM providers via LiteLLM
+- Computes rewards using your `ground_truth` data
+- Supports both batch and interactive execution
+
+## Dataset Format
+
+Test datasets require these columns:
+
+| Column | Required | Description |
+|--------|----------|-------------|
+| `system_prompt` | Yes | System prompt for the LLM |
+| `user_prompt` | Yes | User message to start conversation |
+| `ground_truth` | No | Expected output for reward computation |
+
+### Supported Formats
+
+- **JSONL** (`.jsonl`)
+- **JSON** (`.json`) 
+- **Parquet** (`.parquet`)
+
+### Example Dataset
+
+`test_data.jsonl`:
+
+```jsonl
+{"system_prompt": "You are a calculator. Use tools to solve math problems. Format final answer as: #### <number>", "user_prompt": "What is 15 * 7?", "ground_truth": "105"}
+{"system_prompt": "You are a calculator. Use tools to solve math problems. Format final answer as: #### <number>", "user_prompt": "What is 100 / 4?", "ground_truth": "25"}
+{"system_prompt": "You are a calculator. Use tools to solve math problems. Format final answer as: #### <number>", "user_prompt": "What is 8 + 13?", "ground_truth": "21"}
+```
+
+## Basic Usage
+
+### Set Up API Key
+
+```bash
+# OpenAI (default)
+export OPENAI_API_KEY="your-key"
+
+# Anthropic
+export ANTHROPIC_API_KEY="your-key"
+```
+
+### Run Tests
+
+```bash
+# Default: GPT-4o
+osmosis test -m server:agent_loop -d test_data.jsonl
+
+# Use Claude
+osmosis test -m server:agent_loop -d test_data.jsonl --model anthropic/claude-sonnet-4-20250514
+
+# Use custom OpenAI-compatible API
+osmosis test -m server:agent_loop -d test_data.jsonl --base-url http://localhost:8000/v1
+```
+
+## CLI Options
+
+### Required
+
+| Option | Description |
+|--------|-------------|
+| `-m, --module` | Module path to agent loop (e.g., `server:agent_loop`) |
+| `-d, --dataset` | Path to dataset file |
+
+### Model Selection
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--model` | `gpt-4o` | Model name in LiteLLM format |
+| `--api-key` | env var | API key for provider |
+| `--base-url` | | Custom API base URL |
+
+### Execution Control
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--max-turns` | `10` | Maximum agent turns per row |
+| `--temperature` | | LLM sampling temperature |
+| `--max-tokens` | | Maximum tokens per completion |
+| `--limit` | all | Maximum rows to test |
+| `--offset` | `0` | Rows to skip |
+
+### Output
+
+| Option | Description |
+|--------|-------------|
+| `-o, --output` | Save results to JSON file |
+| `-q, --quiet` | Suppress progress output |
+| `--debug` | Enable debug output |
+
+### Interactive Mode
+
+| Option | Description |
+|--------|-------------|
+| `-i, --interactive` | Enable step-by-step execution |
+| `--row` | Start at specific row index |
+
+## Batch Mode
+
+Run all rows and get summary:
+
+```bash
+osmosis test -m server:agent_loop -d test_data.jsonl
+```
+
+Output:
+
+```
+osmosis-rollout-test v0.2.8
+Loading agent: server:agent_loop
+  Agent name: calculator
+Loading dataset: test_data.jsonl
+  Total rows: 3
+Initializing provider: openai
+  Model: gpt-4o
+
+Running tests...
+[1/3] Row 0: OK (2.1s, 148 tokens)
+[2/3] Row 1: OK (1.9s, 152 tokens)
+[3/3] Row 2: OK (1.7s, 134 tokens)
+
+Summary:
+  Total: 3
+  Passed: 3
+  Failed: 0
+  Duration: 5.7s
+  Total tokens: 434
+```
+
+### Save Results
+
+```bash
+osmosis test -m server:agent_loop -d test_data.jsonl -o results.json
+```
+
+Output JSON structure:
+
+```json
+{
+  "summary": {
+    "total": 3,
+    "passed": 3,
+    "failed": 0,
+    "total_duration_ms": 5700,
+    "total_tokens": 434
+  },
+  "results": [
+    {
+      "row_index": 0,
+      "success": true,
+      "error": null,
+      "duration_ms": 2100,
+      "token_usage": {"total_tokens": 148},
+      "reward": 1.0,
+      "finish_reason": "stop"
+    }
+  ]
+}
+```
+
+### Test Subset
+
+```bash
+# First 10 rows
+osmosis test -m server:agent_loop -d test_data.jsonl --limit 10
+
+# Skip first 50 rows, test next 20
+osmosis test -m server:agent_loop -d test_data.jsonl --offset 50 --limit 20
+```
+
+## Interactive Mode
+
+Step through agent execution for debugging:
+
+```bash
+osmosis test -m server:agent_loop -d test_data.jsonl --interactive
+```
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `n` | Execute next LLM call |
+| `c` | Continue to completion |
+| `m` | Show current message history |
+| `t` | Show available tools |
+| `q` | Quit session |
+
+### Start at Specific Row
+
+```bash
+# Start at row 5
+osmosis test -m server:agent_loop -d test_data.jsonl --interactive --row 5
+```
+
+### Interactive Session Example
+
+```
+=== Interactive Mode ===
+Dataset: test_data.jsonl (3 rows)
+Starting at row 0
+
+--- Row 0 ---
+System: You are a calculator...
+User: What is 15 * 7?
+
+[turn 0] > n
+Calling LLM...
+Assistant: I'll calculate 15 * 7 using the multiply tool.
+Tool calls: multiply(a=15, b=7)
+
+Executing tools...
+Tool result: 105
+
+[turn 1] > n
+Calling LLM...
+Assistant: The answer is:
+
+#### 105
+
+[turn 1] Rollout complete
+  Finish reason: stop
+  Reward: 1.0
+
+Continue to next row? (y/n/q) >
+```
+
+## Supported Providers
+
+Test Mode uses LiteLLM for provider support:
+
+| Provider | Model Format | API Key Env |
+|----------|--------------|-------------|
+| OpenAI | `gpt-4o`, `gpt-4o-mini` | `OPENAI_API_KEY` |
+| Anthropic | `anthropic/claude-sonnet-4-20250514` | `ANTHROPIC_API_KEY` |
+| Google | `gemini/gemini-2.0-flash` | `GOOGLE_API_KEY` |
+| Groq | `groq/llama-3.3-70b-versatile` | `GROQ_API_KEY` |
+| Together | `together/meta-llama/Llama-3-70b` | `TOGETHER_API_KEY` |
+
+### Custom OpenAI-Compatible APIs
+
+```bash
+osmosis test -m server:agent_loop -d test_data.jsonl \
+  --base-url http://localhost:8000/v1 \
+  --model my-local-model
+```
+
+## Tips & Best Practices
+
+<AccordionGroup>
+  <Accordion title="Start with Interactive Mode">
+    Use `--interactive` first to understand agent behavior before running batch tests.
+  </Accordion>
+  
+  <Accordion title="Test Edge Cases">
+    Include diverse test cases: simple queries, multi-step problems, edge cases, and potential failure modes.
+  </Accordion>
+  
+  <Accordion title="Monitor Token Usage">
+    Check token counts in results to estimate training costs.
+  </Accordion>
+  
+  <Accordion title="Version Your Datasets">
+    Keep test datasets versioned alongside your agent code.
+  </Accordion>
+  
+  <Accordion title="Compare Models">
+    Test with multiple models to ensure agent works across providers.
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+### "API key not found"
+
+```bash
+# Set the appropriate environment variable
+export OPENAI_API_KEY="sk-..."
+export ANTHROPIC_API_KEY="sk-ant-..."
+```
+
+### "Model not found"
+
+Check the model name format:
+- OpenAI: `gpt-4o` (no prefix needed)
+- Anthropic: `anthropic/claude-sonnet-4-20250514`
+- Google: `gemini/gemini-2.0-flash`
+
+### "No rows to test"
+
+Check your dataset file:
+- Ensure it has valid JSON on each line (for JSONL)
+- Verify required columns exist
+- Check `--offset` isn't skipping all rows
+
+### Tool Errors
+
+Enable debug mode for detailed output:
+
+```bash
+osmosis test -m server:agent_loop -d test_data.jsonl --debug
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Agent Loop Guide" icon="code" href="/remote-rollout/agent-loop">
+    Learn advanced agent patterns
+  </Card>
+  <Card title="CLI Reference" icon="terminal" href="/python-sdk/cli-reference#test">
+    Complete CLI documentation
+  </Card>
+</CardGroup>

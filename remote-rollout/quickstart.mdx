@@ -1,0 +1,293 @@
+---
+title: 'Quick Start'
+description: 'Build and test a remote rollout agent in 5 minutes'
+---
+
+This guide helps you quickly create a Remote Rollout server. We provide a ready-to-use template repository that you can use to get started immediately.
+
+## Create Your Project from the Template
+
+<Steps>
+  <Step title="Create Repository">
+    Visit our official template repository:
+
+    <Card title="osmosis-remote-rollout-example" icon="github" href="https://github.com/Osmosis-AI/osmosis-remote-rollout-example">
+      Click the **"Use this template"** button in the top-right corner to create your own repository based on this template.
+    </Card>
+
+    This template includes a complete project structure, example code, and test data so you can start developing immediately.
+  </Step>
+
+  <Step title="Clone and Install Dependencies">
+    Clone your newly created repository and install dependencies:
+
+    ```bash
+    uv sync
+    ```
+
+    <Note>
+    If you don't have `uv` installed, you can also use pip:
+    ```bash
+    pip install osmosis-ai[server]
+    ```
+    </Note>
+  </Step>
+
+  <Step title="Login to Osmosis Platform">
+    Authenticate with the Osmosis Platform to enable server registration:
+
+    ```bash
+    uv run osmosis login
+    ```
+
+    This will open your browser for authentication. After logging in, your credentials are saved to `~/.config/osmosis/credentials.json`.
+
+    You can verify your login status with:
+    ```bash
+    uv run osmosis whoami
+    ```
+
+    <Tip>
+    The server uses your credentials to register with Osmosis Platform, enabling the training system to discover and connect to your server.
+    </Tip>
+  </Step>
+
+  <Step title="Run the Server">
+    Start the server using the SDK CLI:
+
+    ```bash
+    uv run osmosis serve -m server:agent_loop
+    ```
+
+    You should see output similar to:
+    ```
+    INFO:     Osmosis RolloutServer starting...
+    INFO:     Agent: calculator
+    INFO:     Tools: 4
+    INFO:     Uvicorn running on http://0.0.0.0:9000
+    ```
+  </Step>
+</Steps>
+
+## Template Structure
+
+The template repository contains the following key components:
+
+```
+my-rollout-server/
+├── server.py           # Agent Loop main file
+├── tools.py            # Tool definitions and execution logic
+├── rewards.py          # Reward computation (optional)
+├── test_data.jsonl     # Test dataset
+├── pyproject.toml      # Project dependencies
+└── README.md           # Documentation
+```
+
+### Core Concept: Agent Loop
+
+The Agent Loop is the core of Remote Rollout. It inherits from `RolloutAgentLoop` and implements two required methods:
+
+```python
+from osmosis_ai.rollout import (
+    RolloutAgentLoop,
+    RolloutContext,
+    RolloutResult,
+    RolloutRequest,
+    create_app,
+)
+
+class CalculatorAgent(RolloutAgentLoop):
+    """Simple calculator agent example"""
+    
+    name = "calculator"  # REQUIRED: unique agent identifier
+
+    def get_tools(self, request: RolloutRequest):
+        """REQUIRED: Return available tools for this agent
+        
+        Called when /v1/rollout/init request is received.
+        The returned tools are included in the InitResponse sent to the training platform.
+        """
+        return CALCULATOR_TOOLS
+
+    async def run(self, ctx: RolloutContext) -> RolloutResult:
+        """REQUIRED: Execute the agent loop
+        
+        This is where you implement your agent logic:
+        1. Call the LLM to get a response
+        2. Execute tool calls
+        3. Continue the conversation until completion
+        """
+        messages = list(ctx.request.messages)
+
+        for turn in range(ctx.request.max_turns):
+            # Call LLM
+            result = await ctx.chat(messages, **ctx.request.completion_params)
+            messages.append(result.message)
+
+            # Check if done (no tool calls)
+            if not result.has_tool_calls:
+                break
+
+            # Execute tool calls
+            for tool_call in result.tool_calls:
+                # ... parse and execute tool ...
+                output = await execute_tool(tool_call)
+                
+                messages.append({
+                    "role": "tool",
+                    "tool_call_id": tool_call.get("id"),
+                    "content": str(output)
+                })
+                ctx.record_tool_call()  # Optional: record metrics
+
+        return ctx.complete(messages)
+
+# Export agent instance for CLI
+agent_loop = CalculatorAgent()
+
+# Create FastAPI app
+app = create_app(agent_loop)
+```
+
+### Tool Definitions
+
+Tools are defined using the OpenAI function calling format:
+
+```python
+CALCULATOR_TOOLS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "multiply",
+            "description": "Multiply two numbers",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "a": {"type": "number", "description": "First number"},
+                    "b": {"type": "number", "description": "Second number"}
+                },
+                "required": ["a", "b"]
+            }
+        }
+    }
+]
+```
+
+<Note>
+**Key Methods:**
+- `get_tools()` - Returns tool definitions when `/v1/rollout/init` is called
+- `run()` - Executes your agent loop logic
+- `ctx.chat()` - Calls the training platform's LLM endpoint
+- `ctx.record_tool_call()` - Optional, records tool call count for metrics
+- `ctx.complete()` - Returns the final result
+</Note>
+
+## Validation and Testing
+
+### Validate Agent Configuration
+
+Before running, validate your agent implementation using the CLI:
+
+```bash
+uv run osmosis validate -m server:agent_loop
+```
+
+Expected output:
+```
+✓ Agent loop validated successfully
+  Name: calculator
+  Tools: 4 (add, subtract, multiply, divide)
+```
+
+### Local Testing
+
+The template includes a `test_data.jsonl` test dataset. Set your API key and run tests:
+
+```bash
+export OPENAI_API_KEY="your-key-here"
+
+# Run batch tests
+uv run osmosis test -m server:agent_loop -d test_data.jsonl
+
+# Limit number of tests
+uv run osmosis test -m server:agent_loop -d test_data.jsonl --limit 10
+
+# Use a different model
+uv run osmosis test -m server:agent_loop -d test_data.jsonl --model anthropic/claude-sonnet-4-20250514
+```
+
+### Interactive Debugging
+
+Step through agent execution for debugging:
+
+```bash
+uv run osmosis test -m server:agent_loop -d test_data.jsonl --interactive
+```
+
+Interactive commands:
+- `n` - Execute next LLM call
+- `c` - Continue to completion
+- `m` - Show message history
+- `t` - Show available tools
+- `q` - Quit
+
+## Development Tips
+
+### Enable Hot Reload
+
+Enable auto-reload during development to automatically restart the server when code changes:
+
+```bash
+uv run osmosis serve -m server:agent_loop --reload
+```
+
+### Enable Debug Logging
+
+Write execution traces to files for debugging:
+
+```bash
+uv run osmosis serve -m server:agent_loop --log ./logs
+```
+
+Log file structure:
+```
+logs/
+└── {timestamp}/
+    ├── rollout-abc123.jsonl
+    └── rollout-def456.jsonl
+```
+
+### Local Mode (No Login Required)
+
+Skip login and platform registration for local development:
+
+```bash
+uv run osmosis serve -m server:agent_loop --local
+```
+
+<Warning>
+Local mode disables API key authentication and platform registration. This is intended for development only and should not be used in production.
+</Warning>
+
+## Test Dataset Format
+
+Test datasets must include the following columns:
+
+| Column | Description |
+|--------|-------------|
+| `system_prompt` | System prompt for the LLM |
+| `user_prompt` | User message to start conversation |
+| `ground_truth` | Expected output (for reward computation) |
+
+Supported formats: `.json`, `.jsonl`, `.parquet`
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Agent Loop Guide" icon="code" href="/remote-rollout/agent-loop">
+    Learn advanced agent loop patterns
+  </Card>
+  <Card title="Test Mode" icon="flask" href="/remote-rollout/test-mode">
+    Master the testing workflow
+  </Card>
+</CardGroup>

@@ -5,13 +5,26 @@ description: 'Complete Python SDK API reference for Osmosis AI'
 
 # API Reference
 
-Complete reference for the osmosis-ai Python SDK.
+Complete reference for the osmosis-ai Python SDK. The SDK provides two main capabilities:
 
-## Decorators
+<CardGroup cols={2}>
+  <Card title="Reward & Evaluation" icon="star">
+    Decorators and functions for scoring LLM outputs using local rules or LLM-based rubrics
+  </Card>
+  <Card title="Remote Rollout" icon="server">
+    Build custom agent loops for training infrastructure integration
+  </Card>
+</CardGroup>
 
-### @osmosis_reward
+---
 
-Decorator for local reward functions that compute scores without API calls.
+## Reward API
+
+### Decorators
+
+#### @osmosis_reward
+
+Decorator for local reward functions that compute scores without API calls. Use this for deterministic evaluation logic (exact match, regex, keyword matching).
 
 **Signature:**
 ```python
@@ -45,9 +58,9 @@ def exact_match(solution_str: str, ground_truth: str, extra_info: dict = None, *
 
 ---
 
-### @osmosis_rubric
+#### @osmosis_rubric
 
-Decorator for LLM-based evaluation functions.
+Decorator for LLM-based evaluation functions. Use this for subjective evaluation that requires semantic understanding (helpfulness, tone, quality).
 
 **Signature:**
 ```python
@@ -86,11 +99,11 @@ def quality_check(solution_str: str, ground_truth: str | None, extra_info: dict,
 
 ---
 
-## Core Functions
+### Rubric Evaluation
 
-### evaluate_rubric()
+#### evaluate_rubric()
 
-Evaluate text using an LLM-based rubric.
+Evaluate text using an LLM-based rubric. This is the core function for LLM-powered evaluation.
 
 **Signature:**
 ```python
@@ -151,9 +164,9 @@ score = evaluate_rubric(
 
 ---
 
-## Exceptions
+### Exceptions
 
-### MissingAPIKeyError
+#### MissingAPIKeyError
 
 Raised when an API key is not found for a provider.
 
@@ -166,9 +179,7 @@ except MissingAPIKeyError as e:
     print(f"API key not found: {e}")
 ```
 
----
-
-### ProviderRequestError
+#### ProviderRequestError
 
 Raised when a provider request fails.
 
@@ -181,9 +192,7 @@ except ProviderRequestError as e:
     print(f"Provider error: {e}")
 ```
 
----
-
-### ModelNotFoundError
+#### ModelNotFoundError
 
 Raised when a specified model is not available (subclass of `ProviderRequestError`).
 
@@ -198,42 +207,42 @@ except ModelNotFoundError as e:
 
 ---
 
-<Snippet file="_includes/supported-providers.mdx" />
+### Types
 
----
-
-## Type Definitions
-
-### ModelInfo (TypedDict)
+#### ModelInfo (TypedDict)
 
 ```python
-from osmosis_ai import ModelInfo
+from osmosis_ai.rubric_types import ModelInfo
 
 model_info: ModelInfo = {
     "provider": "openai",
-    "model": "gpt-5",
+    "model": "gpt-4o",
     "api_key_env": "OPENAI_API_KEY",
     "timeout": 30
 }
 ```
 
----
-
-### RewardRubricRunResult (TypedDict)
+#### RewardRubricRunResult (TypedDict)
 
 Returned when `return_details=True`:
 
 ```python
-{
+from osmosis_ai.rubric_types import RewardRubricRunResult
+
+result: RewardRubricRunResult = {
     "score": 0.85,              # float
     "explanation": "...",       # str
-    "raw_payload": {...}        # dict
+    "raw": {...}                # Any - raw LLM response
 }
 ```
 
 ---
 
-## Complete Example
+<Snippet file="_includes/supported-providers.mdx" />
+
+---
+
+### Complete Reward Example
 
 ```python
 from osmosis_ai import osmosis_reward, osmosis_rubric, evaluate_rubric
@@ -269,16 +278,63 @@ print(f"Semantic: {semantic_score}")      # ~1.0
 
 ---
 
+## Remote Rollout API
+
+Build custom agent loops that integrate with Osmosis training infrastructure. Your agent runs as an HTTP server while the training cluster handles LLM inference and trajectory collection.
+
+### Quick Overview
+
+| Component | Description |
+|-----------|-------------|
+| `RolloutAgentLoop` | Base class for implementing agents |
+| `RolloutContext` | Execution context with `chat()`, `complete()`, `error()` methods |
+| `RolloutRequest` | Initial request with messages, parameters, and metadata |
+| `create_app()` | Factory function to create FastAPI server |
+
+### Minimal Example
+
+```python
+from osmosis_ai.rollout import RolloutAgentLoop, RolloutContext, RolloutResult, RolloutRequest, create_app
+
+class MyAgent(RolloutAgentLoop):
+    name = "my_agent"
+
+    def get_tools(self, request: RolloutRequest) -> list:
+        return [{"type": "function", "function": {"name": "search", ...}}]
+
+    async def run(self, ctx: RolloutContext) -> RolloutResult:
+        messages = list(ctx.request.messages)
+        result = await ctx.chat(messages)
+        messages.append(result.message)
+        return ctx.complete(messages)
+
+app = create_app(MyAgent())
+```
+
+### Utility Modules
+
+| Module | Description |
+|--------|-------------|
+| `osmosis_ai.rollout.tools` | Tool execution helpers (`get_tool_call_info`, `create_tool_result`, etc.) |
+| `osmosis_ai.rollout.messages` | Message utilities (`get_message_content`, `is_assistant_message`, etc.) |
+| `osmosis_ai.rollout.network` | Network utilities (`detect_public_ip`, `validate_ipv4`, etc.) |
+
+<Card title="Remote Rollout Documentation" icon="book" href="/remote-rollout/overview">
+  For complete Remote Rollout API documentation, guides, and examples, see the dedicated Remote Rollout section.
+</Card>
+
+---
+
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Quick Start" icon="rocket" href="/python-sdk/quickstart">
-    Learn with examples
+  <Card title="Git Sync" icon="code-branch" href="/git-sync/overview">
+    Define reward functions and rubrics
   </Card>
-  <Card title="Decorators & API Guide" icon="code" href="/python-sdk/decorators-api">
-    Advanced patterns
+  <Card title="Remote Rollout" icon="server" href="/remote-rollout/overview">
+    Build custom agent loops
   </Card>
   <Card title="CLI Reference" icon="terminal" href="/python-sdk/cli-reference">
-    Batch evaluations
+    Complete CLI documentation
   </Card>
 </CardGroup>
