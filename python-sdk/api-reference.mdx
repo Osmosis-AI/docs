@@ -92,7 +92,7 @@ def quality_check(solution_str: str, ground_truth: str | None, extra_info: dict,
     return evaluate_rubric(
         rubric="Evaluate response quality",
         solution_str=solution_str,
-        model_info={"provider": "openai", "model": "gpt-5"},
+        model_info={"provider": "openai", "model": "gpt-5.2"},
         ground_truth=ground_truth
     )
 ```
@@ -140,7 +140,7 @@ def evaluate_rubric(
 ```python
 {
     "provider": "openai",           # Required
-    "model": "gpt-5",         # Required
+    "model": "gpt-5.2",         # Required
     "api_key": "sk-...",            # Optional
     "api_key_env": "OPENAI_API_KEY", # Optional
     "timeout": 30                   # Optional
@@ -158,7 +158,7 @@ from osmosis_ai import evaluate_rubric
 score = evaluate_rubric(
     rubric="Evaluate how helpful the response is.",
     solution_str="Click 'Forgot Password' to reset.",
-    model_info={"provider": "openai", "model": "gpt-5"}
+    model_info={"provider": "openai", "model": "gpt-5.2"}
 )
 ```
 
@@ -216,7 +216,7 @@ from osmosis_ai.rubric_types import ModelInfo
 
 model_info: ModelInfo = {
     "provider": "openai",
-    "model": "gpt-4o",
+    "model": "gpt-5.2",
     "api_key_env": "OPENAI_API_KEY",
     "timeout": 30
 }
@@ -262,7 +262,7 @@ def semantic_eval(solution_str: str, ground_truth: str | None, extra_info: dict,
         rubric="Compare semantic similarity (0-1 scale)",
         solution_str=solution_str,
         ground_truth=ground_truth,
-        model_info={"provider": "openai", "model": "gpt-5"}
+        model_info={"provider": "openai", "model": "gpt-5.2"}
     )
 
 # Usage
@@ -316,7 +316,7 @@ app = create_app(MyAgent())
 | Module | Description |
 |--------|-------------|
 | `osmosis_ai.rollout.tools` | Tool execution helpers (`get_tool_call_info`, `create_tool_result`, etc.) |
-| `osmosis_ai.rollout.messages` | Message utilities (`get_message_content`, `is_assistant_message`, etc.) |
+| `osmosis_ai.rollout.utils` | Message utilities (`get_message_content`, `is_assistant_message`, etc.) |
 | `osmosis_ai.rollout.network` | Network utilities (`detect_public_ip`, `validate_ipv4`, etc.) |
 
 <Card title="Remote Rollout Documentation" icon="book" href="/remote-rollout/overview">

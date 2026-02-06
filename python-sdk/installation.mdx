@@ -25,11 +25,8 @@ Install additional features based on your use case:
 # For running remote rollout servers (FastAPI + Uvicorn)
 pip install "osmosis-ai[server]"
 
-# For configuration management (pydantic-settings)
-pip install "osmosis-ai[config]"
-
-# For local testing with cloud LLMs
-pip install "osmosis-ai[test-mode]"
+# For development (pytest, formatting tools)
+pip install "osmosis-ai[dev]"
 
 # Install everything
 pip install "osmosis-ai[full]"
@@ -78,7 +75,7 @@ Test the Python SDK:
 from osmosis_ai import osmosis_reward
 
 @osmosis_reward
-def test_fn(solution_str: str, ground_truth: str, extra_info: dict = None) -> float:
+def test_fn(solution_str: str, ground_truth: str, extra_info: dict = None, **kwargs) -> float:
     return 1.0
 
 print(test_fn("hello", "hello"))  # Output: 1.0

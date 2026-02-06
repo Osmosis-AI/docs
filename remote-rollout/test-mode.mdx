@@ -62,7 +62,7 @@ export ANTHROPIC_API_KEY="your-key"
 osmosis test -m server:agent_loop -d test_data.jsonl
 
 # Use Claude
-osmosis test -m server:agent_loop -d test_data.jsonl --model anthropic/claude-sonnet-4-20250514
+osmosis test -m server:agent_loop -d test_data.jsonl --model anthropic/claude-sonnet-4-5
 
 # Use custom OpenAI-compatible API
 osmosis test -m server:agent_loop -d test_data.jsonl --base-url http://localhost:8000/v1
@@ -81,7 +81,7 @@ osmosis test -m server:agent_loop -d test_data.jsonl --base-url http://localhost
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--model` | `gpt-4o` | Model name in LiteLLM format |
+| `--model` | `gpt-5.2` | Model name in LiteLLM format |
 | `--api-key` | env var | API key for provider |
 | `--base-url` | | Custom API base URL |
 
@@ -127,7 +127,7 @@ Loading agent: server:agent_loop
 Loading dataset: test_data.jsonl
   Total rows: 3
 Initializing provider: openai
-  Model: gpt-4o
+  Model: gpt-5.2
 
 Running tests...
 [1/3] Row 0: OK (2.1s, 148 tokens)
@@ -246,9 +246,9 @@ Test Mode uses LiteLLM for provider support:
 
 | Provider | Model Format | API Key Env |
 |----------|--------------|-------------|
-| OpenAI | `gpt-4o`, `gpt-4o-mini` | `OPENAI_API_KEY` |
-| Anthropic | `anthropic/claude-sonnet-4-20250514` | `ANTHROPIC_API_KEY` |
-| Google | `gemini/gemini-2.0-flash` | `GOOGLE_API_KEY` |
+| OpenAI | `gpt-5.2`, `gpt-5-mini` | `OPENAI_API_KEY` |
+| Anthropic | `anthropic/claude-sonnet-4-5` | `ANTHROPIC_API_KEY` |
+| Google | `gemini/gemini-2.5-flash` | `GOOGLE_API_KEY` |
 | Groq | `groq/llama-3.3-70b-versatile` | `GROQ_API_KEY` |
 | Together | `together/meta-llama/Llama-3-70b` | `TOGETHER_API_KEY` |
 
@@ -297,9 +297,9 @@ export ANTHROPIC_API_KEY="sk-ant-..."
 ### "Model not found"
 
 Check the model name format:
-- OpenAI: `gpt-4o` (no prefix needed)
-- Anthropic: `anthropic/claude-sonnet-4-20250514`
-- Google: `gemini/gemini-2.0-flash`
+- OpenAI: `gpt-5.2` (no prefix needed)
+- Anthropic: `anthropic/claude-sonnet-4-5`
+- Google: `gemini/gemini-2.5-flash`
 
 ### "No rows to test"
 

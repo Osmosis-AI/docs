@@ -17,7 +17,7 @@ RUBRIC = "Reward based on whether the predicted numerical value matches the grou
 SCORE_MIN = 0.0
 SCORE_MAX = 1.0
 PROVIDER = "openai"
-MODEL = "gpt-5"
+MODEL = "gpt-5.2"
 API_KEY = os.getenv("OPENAI_API_KEY")
 
 @osmosis_rubric
@@ -77,7 +77,7 @@ score = evaluate_rubric(
     solution_str="The output to evaluate",
     model_info={
         "provider": "openai",
-        "model": "gpt-5",
+        "model": "gpt-5.2",
         "api_key": "your-api-key"
     },
     ground_truth="Expected answer",
@@ -118,7 +118,7 @@ def openai_rubric(
 ) -> float:
     model_info = {
         "provider": "openai",
-        "model": "gpt-5",
+        "model": "gpt-5.2",
         "api_key": os.getenv("OPENAI_API_KEY")
     }
 
@@ -281,7 +281,7 @@ def context_aware_rubric(
 
     model_info = {
         "provider": "openai",
-        "model": "gpt-5",
+        "model": "gpt-5.2",
         "api_key": os.getenv("OPENAI_API_KEY")
     }
 
@@ -349,7 +349,7 @@ def robust_rubric(
     try:
         model_info = {
             "provider": "openai",
-            "model": "gpt-5",
+            "model": "gpt-5.2",
             "api_key": os.getenv("OPENAI_API_KEY")
         }
 
@@ -391,7 +391,7 @@ API_KEY = "sk-..."  # Don't do this!
 
 ```python
 # Example with OpenAI
-model = "gpt-5"
+model = "gpt-5.2"
 
 # Example with Anthropic
 model = "claude-sonnet-4-5"
@@ -462,8 +462,8 @@ if __name__ == "__main__":
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Setup Guide" icon="rocket" href="/git-sync/setup-guide">
-    Complete setup walkthrough
+  <Card title="Sync to Platform" icon="rocket" href="/git-sync/sync-repository-to-platform">
+    Sync your repository to Osmosis
   </Card>
   <Card title="Best Practices" icon="star" href="/git-sync/best-practices">
     Tips and troubleshooting
