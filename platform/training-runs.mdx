@@ -1,0 +1,109 @@
+---
+title: 'Training Runs'
+description: 'Create, configure, and manage reinforcement learning training runs'
+---
+
+A training run is a single RL training session that improves a base model using your reward functions, tools, and datasets. The platform handles GPU provisioning, the training loop, and checkpoint management.
+
+## Creating a Training Run
+
+From your project dashboard:
+
+1. Click **New Training Run**
+2. Configure the run (see sections below)
+3. Click **Start Training**
+
+## Configuration
+
+### Base Model
+
+Select the foundation model to fine-tune. The platform supports popular open-weight models compatible with RL training.
+
+### Dataset
+
+Upload or select a training dataset. Datasets contain prompts (and optionally ground truth) that the model trains on during rollouts.
+
+<Tip>
+Datasets are typically in Parquet format with columns for prompts and expected outputs. See the [Remote Rollout quickstart](/remote-rollout/quickstart) for dataset format examples.
+</Tip>
+
+### Reward Functions
+
+Select one or more reward functions to score the model's outputs during training:
+
+- **Synced reward functions** — Imported from your connected GitHub repository via [Git Sync](/git-sync/reward-functions)
+- **Reward rubrics** — LLM-evaluated rubrics that use [configured providers](/platform/llm-judges)
+
+Multiple reward functions can be combined with configurable weights.
+
+### Tools
+
+Select the MCP tools available to the agent during training rollouts. Tools are synced from your [connected repository](/platform/github-integration) or defined in your [Remote Rollout server](/remote-rollout/agent-loop).
+
+### Hyperparameters
+
+Key training hyperparameters you can configure:
+
+| Parameter | Description |
+|-----------|-------------|
+| **Learning rate** | Step size for model updates |
+| **Batch size** | Number of samples per training step |
+| **Max turns** | Maximum agent turns per rollout episode |
+| **KL penalty** | Coefficient for KL divergence penalty (prevents catastrophic forgetting) |
+| **Epochs** | Number of passes through the dataset |
+| **Temperature** | Sampling temperature during rollouts |
+
+Default values are provided and work well for most use cases. Adjust based on your training results.
+
+## Training Strategies
+
+### Standard Training
+
+Single pass through your dataset with RL optimization. Best for:
+- Initial training experiments
+- Well-defined tasks with clear reward signals
+- Smaller datasets
+
+### Continuous Training
+
+Multiple epochs with ongoing monitoring. Best for:
+- Production model improvement
+- Large datasets where multiple passes help
+- Tasks requiring gradual refinement
+
+## Managing Training Runs
+
+### Starting and Stopping
+
+- **Start** — Provisions GPUs and begins training
+- **Pause** — Saves current state and releases resources
+- **Resume** — Continues from the last checkpoint
+- **Stop** — Ends training and finalizes checkpoints
+
+### Checkpoints
+
+During training, the platform automatically saves checkpoints at configurable intervals. From the training run page:
+
+- View all saved checkpoints with their training step and metrics
+- Compare checkpoints by reward scores
+- Merge a checkpoint to create a deployable model
+- Export merged models to Hugging Face Hub
+
+See [Monitoring](/platform/monitoring) for details on tracking training progress and managing checkpoints.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Monitoring" icon="chart-line" href="/platform/monitoring">
+    Track training metrics and manage checkpoints
+  </Card>
+  <Card title="LLM Judges" icon="scale-balanced" href="/platform/llm-judges">
+    Configure providers for reward rubric evaluation
+  </Card>
+  <Card title="Git Sync" icon="code-branch" href="/git-sync/overview">
+    Sync reward functions and tools from GitHub
+  </Card>
+  <Card title="Remote Rollout" icon="server" href="/remote-rollout/overview">
+    Build custom agent loops for training
+  </Card>
+</CardGroup>

@@ -1,0 +1,91 @@
+---
+title: 'Getting Started'
+description: 'Sign up, create a project, and start training'
+---
+
+This guide walks you through setting up the Osmosis Platform from scratch.
+
+## Step 1: Create Your Account
+
+1. Go to [platform.osmosis.ai](https://platform.osmosis.ai) and sign up
+2. Create a new workspace (or join an existing one via team invite)
+3. You'll land on the workspace dashboard
+
+## Step 2: Install the SDK
+
+Install the Osmosis Python SDK and authenticate:
+
+```bash
+pip install osmosis-ai
+osmosis login
+```
+
+The `osmosis login` command opens your browser to authenticate with the platform and stores your CLI token locally.
+
+## Step 3: Create a Project
+
+From your workspace dashboard:
+
+1. Click **New Project**
+2. Give it a name and description
+3. Choose your workflow — this determines how you'll connect your code:
+   - **Git Sync**: Connect a GitHub repository with reward functions and tools
+   - **Remote Rollout**: Point to a rollout server you host
+
+## Step 4: Choose Your Path
+
+<CardGroup cols={2}>
+  <Card title="Git Sync Path" icon="code-branch" href="/git-sync/overview">
+    **Sync tools and rewards from GitHub**
+
+    1. Structure your repository with `mcp/`, `reward_fn/`, `reward_rubric/` folders
+    2. Install the [GitHub App](/platform/github-integration) and connect your repo
+    3. Push code — Osmosis auto-syncs your components
+    4. Configure a [training run](/platform/training-runs) using your synced components
+  </Card>
+  <Card title="Remote Rollout Path" icon="server" href="/remote-rollout/quickstart">
+    **Build and host a custom agent server**
+
+    1. Implement a `RolloutAgentLoop` using the SDK
+    2. Test locally with `osmosis test`
+    3. Deploy your server and register the URL on the platform
+    4. Configure a [training run](/platform/training-runs) pointing to your server
+  </Card>
+</CardGroup>
+
+## Step 5: Configure Training
+
+Once your code is connected (via Git Sync or Remote Rollout):
+
+1. Navigate to **Training Runs** in your project
+2. Click **New Training Run**
+3. Select your base model, dataset, reward functions, and tools
+4. Configure hyperparameters (or use defaults)
+5. Click **Start Training**
+
+See [Training Runs](/platform/training-runs) for detailed configuration options.
+
+## Step 6: Monitor and Export
+
+While training runs:
+
+- Watch real-time metrics on the [Monitoring](/platform/monitoring) dashboard
+- Review training logs and checkpoints
+- When satisfied, merge a checkpoint and export to [Hugging Face](https://huggingface.co)
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Platform Overview" icon="grid-2" href="/platform/overview">
+    Understand core platform concepts
+  </Card>
+  <Card title="Training Runs" icon="play" href="/platform/training-runs">
+    Detailed training configuration
+  </Card>
+  <Card title="Python SDK" icon="python" href="/python-sdk/installation">
+    SDK installation and setup
+  </Card>
+  <Card title="GitHub Integration" icon="github" href="/platform/github-integration">
+    Connect your repository
+  </Card>
+</CardGroup>

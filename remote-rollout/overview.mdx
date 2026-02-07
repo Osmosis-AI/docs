@@ -5,6 +5,10 @@ description: 'Build custom agent loops for Osmosis training infrastructure'
 
 Remote Rollout enables you to create custom agent implementations that integrate seamlessly with Osmosis training infrastructure. Your agent runs as an HTTP server while the training cluster handles LLM inference and trajectory collection.
 
+<Note>
+**Prerequisites**: You need an [Osmosis Platform account](/platform/quickstart) and the SDK installed (`pip install osmosis-ai[server]`). Authenticate with `osmosis login`, then register your rollout server URL on [platform.osmosis.ai](https://platform.osmosis.ai) when ready to train.
+</Note>
+
 ## What is Remote Rollout?
 
 Remote Rollout separates agent trajectory generation from training infrastructure:

@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/schema.json",
-  "name": "Osmosis API",
+  "name": "Osmosis",
   "logo": {
     "dark": "/logo/logo.svg",
     "light": "/logo/logo.svg"
@@ -17,11 +17,19 @@
   },
   "topbarLinks": [
     {
+      "name": "Platform",
+      "url": "https://platform.osmosis.ai"
+    },
+    {
       "name": "Contact Us",
       "url": "mailto:contact@osmosis.ai"
     }
   ],
   "tabs": [
+    {
+      "name": "Platform",
+      "url": "platform"
+    },
     {
       "name": "Python SDK",
       "url": "python-sdk"
@@ -36,6 +44,22 @@
     }
   ],
   "navigation": [
+    {
+      "group": "",
+      "pages": ["introduction"]
+    },
+    {
+      "group": "Platform",
+      "pages": [
+        "platform/overview",
+        "platform/quickstart",
+        "platform/github-integration",
+        "platform/training-runs",
+        "platform/monitoring",
+        "platform/llm-judges",
+        "platform/workspace-settings"
+      ]
+    },
     {
       "group": "Python SDK",
       "pages": [

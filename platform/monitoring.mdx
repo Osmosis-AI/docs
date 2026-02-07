@@ -1,0 +1,88 @@
+---
+title: 'Monitoring & Metrics'
+description: 'Track training progress with real-time metrics, logs, and checkpoint management'
+---
+
+The monitoring dashboard gives you real-time visibility into your training runs — metrics, logs, checkpoints, and model performance over time.
+
+## Metrics Dashboard
+
+During an active training run, the dashboard displays key metrics updated in real time:
+
+| Metric | Description |
+|--------|-------------|
+| **Training Reward** | Average reward score across training rollouts |
+| **Validation Reward** | Reward score on held-out validation data |
+| **Model Entropy** | Measure of output diversity (higher = more exploration) |
+| **Response Length** | Average token count of model responses |
+| **KL Divergence** | Distance from the reference model (monitors catastrophic forgetting) |
+
+Each metric is plotted over training steps, so you can see trends and identify when the model is converging, overfitting, or degrading.
+
+### Time Range Controls
+
+Filter metrics by time range:
+- Last hour, last 6 hours, last 24 hours
+- Full training run
+- Custom range
+
+## Training Logs
+
+The logs panel shows detailed event-level information:
+
+- **Rollout logs** — Individual rollout traces with prompts, responses, tool calls, and rewards
+- **System logs** — Infrastructure events (GPU allocation, checkpoint saves, errors)
+- **Reward breakdowns** — Per-sample reward scores with details from each reward function
+
+Logs can be filtered by severity (info, warning, error) and searched by keyword.
+
+## Checkpoints
+
+Checkpoints are saved automatically during training at configurable intervals. Each checkpoint captures:
+
+- Model weights at that training step
+- Training metrics at the time of save
+- Configuration used for the run
+
+### Viewing Checkpoints
+
+The checkpoint list shows:
+- **Step number** — Training step when the checkpoint was saved
+- **Training reward** — Average reward at that step
+- **Validation reward** — Validation score at that step
+- **Timestamp** — When the checkpoint was created
+
+### Merging Checkpoints
+
+To create a deployable model from a checkpoint:
+
+1. Select a checkpoint from the list
+2. Click **Merge** — this combines the RL adapter with the base model
+3. The merged model is saved and ready for export
+
+### Exporting to Hugging Face
+
+After merging a checkpoint:
+
+1. Click **Upload to Hugging Face** on the merged model
+2. Configure the target repository and visibility (public/private)
+3. The model is uploaded with a model card containing training metadata
+
+<Note>
+You must configure your Hugging Face integration in [Workspace Settings](/platform/workspace-settings) before exporting.
+</Note>
+
+## Comparing Runs
+
+If you have multiple training runs in a project, you can compare their metrics side-by-side to identify which configuration performs best.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Training Runs" icon="play" href="/platform/training-runs">
+    Configure and manage training runs
+  </Card>
+  <Card title="Workspace Settings" icon="gear" href="/platform/workspace-settings">
+    Configure Hugging Face integration for exports
+  </Card>
+</CardGroup>

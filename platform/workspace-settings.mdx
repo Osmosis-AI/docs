@@ -1,0 +1,122 @@
+---
+title: 'Workspace & Team'
+description: 'Manage your workspace, team members, API keys, and integrations'
+---
+
+Workspace settings control access, integrations, and configuration for your Osmosis team.
+
+## Workspace Management
+
+From **Settings → Workspace → General**:
+
+- **Name** — Display name for your workspace
+- **Description** — Brief description of what your team works on
+- **Workspace ID** — Unique identifier used in API calls
+
+## Team Members
+
+Manage who has access to your workspace from **Settings → Workspace → Team**.
+
+### Roles
+
+| Role | Permissions |
+|------|------------|
+| **Owner** | Full access. Manage billing, delete workspace, manage all settings. |
+| **Admin** | Manage members, create projects, configure integrations. Cannot delete workspace or manage billing. |
+| **Member** | Create and run training runs, view metrics, access projects. Cannot manage workspace settings. |
+
+### Inviting Members
+
+1. Go to **Settings → Workspace → Team**
+2. Click **Invite Member**
+3. Enter their email address and select a role
+4. They'll receive an email invitation to join the workspace
+
+## API Keys
+
+Generate API keys for programmatic access to the Osmosis platform.
+
+From **Settings → Workspace → API Keys**:
+
+- **Create** new API keys with optional descriptions
+- **View** active keys (only the prefix is shown after creation)
+- **Revoke** keys that are no longer needed
+
+<Warning>
+API keys grant full access to your workspace. Store them securely and never commit them to version control.
+</Warning>
+
+### Using API Keys
+
+Set the API key as an environment variable for SDK and CLI usage:
+
+```bash
+export OSMOSIS_API_KEY="your-api-key"
+```
+
+Or authenticate via the CLI:
+
+```bash
+osmosis login
+```
+
+## CLI Tokens
+
+The `osmosis login` command stores a CLI token locally for authentication. Tokens are scoped to your user account and workspace.
+
+To manage CLI sessions:
+
+```bash
+# Authenticate
+osmosis login
+
+# Check current authentication status
+osmosis auth status
+```
+
+## Hugging Face Integration
+
+Connect your Hugging Face account to export trained models directly from the platform.
+
+From **Settings → Workspace → Integrations**:
+
+1. Click **Connect Hugging Face**
+2. Authorize Osmosis to access your Hugging Face account
+3. Once connected, you can upload merged checkpoints to any of your Hugging Face repositories
+
+See [Monitoring → Exporting to Hugging Face](/platform/monitoring#exporting-to-hugging-face) for export details.
+
+## LLM Provider Keys
+
+Configure API keys for LLM providers used by [reward rubrics](/platform/llm-judges) during training.
+
+From **Settings → Workspace → LLM Providers**:
+
+- Add keys for OpenAI, Anthropic, Google, xAI, and other supported providers
+- Keys are encrypted at rest and only used during training runs
+- Test provider connectivity from the settings page
+
+## Billing
+
+From **Settings → Workspace → Billing** (Owner only):
+
+- View current usage and costs
+- Manage payment methods
+- View billing history
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Getting Started" icon="rocket" href="/platform/quickstart">
+    Set up your workspace and start training
+  </Card>
+  <Card title="LLM Judges" icon="scale-balanced" href="/platform/llm-judges">
+    Configure LLM providers for reward evaluation
+  </Card>
+  <Card title="GitHub Integration" icon="github" href="/platform/github-integration">
+    Connect repositories for auto-sync
+  </Card>
+  <Card title="Platform Overview" icon="grid-2" href="/platform/overview">
+    Core platform concepts
+  </Card>
+</CardGroup>
