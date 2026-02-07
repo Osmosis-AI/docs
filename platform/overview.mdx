@@ -15,28 +15,43 @@ description: 'What is Osmosis Platform and what can you do with it'
 | **Reward Function** | Python function that scores LLM outputs deterministically. Returns a float. |
 | **Reward Rubric** | Natural language criteria evaluated by an LLM judge during training. |
 | **MCP Tools** | Functions the agent can call during rollouts (calculators, search, code execution, etc.). |
+| **Rollout Server** | An HTTP server you build that implements your custom agent loop. The training cluster sends rollout requests to your server, which orchestrates tool calls and LLM inference, then returns trajectories and rewards. Built with the Python SDK's `RolloutAgentLoop` API. |
 | **Checkpoint** | A saved model state during training. Can be merged and exported to Hugging Face. |
 
 ## Architecture
 
-```mermaid
-graph TB
-    U[Your Code] --> P[Osmosis Platform]
-    P --> G[GPU Training Cluster]
-    G --> M[Trained Model]
+Osmosis supports two rollout modes. **Choose one** depending on where you want the agent loop to run during training.
 
-    U -- "Git Sync" --> P
-    U -- "Remote Rollout Server" --> G
-    P -- "Metrics & Logs" --> U
-    M -- "Export" --> HF[Hugging Face Hub]
+```mermaid
+graph TD
+    subgraph A["Option A — Local Rollout"]
+        GR[GitHub Repo]
+    end
+
+    subgraph B["Option B — Remote Rollout"]
+        RS[Your Rollout Server]
+    end
+
+    GR -- "Git Sync" --> P[Osmosis Platform]
+    P -- "Sync rewards & tools" --> C
+
+    RS <-- "HTTP API" --> C
+
+    subgraph C["GPU Training Cluster"]
+        RL[RL Training]
+    end
+
+    C --> M[Trained Model]
+    M --> HF[Hugging Face Hub]
 ```
 
-Your code connects to the platform in two ways:
+### Option A: Local Rollout
 
-1. **Git Sync** — Push reward functions, rubrics, and MCP tools to GitHub. The platform auto-syncs them via webhook.
-2. **Remote Rollout** — Run an HTTP server implementing your agent loop. The training cluster calls your server during rollouts.
+Agent loop runs **inside** the training cluster. Push reward functions, rubrics, and MCP tools to GitHub — the platform syncs and runs everything. No server to deploy.
 
-The platform manages everything else: provisioning GPUs, running the RL training loop, collecting metrics, saving checkpoints, and exporting models.
+### Option B: Remote Rollout
+
+Agent loop runs on **your own server**. You only need to implement two functions — `get_tools()` (define available tools) and `run()` (agent loop logic) — by subclassing `RolloutAgentLoop`. The Python SDK automatically creates a trainer-compatible HTTP server that handles all protocol details (`/v1/rollout/init`, `/v1/chat/completions`, `/v1/rollout/completed`). Full control over agent logic and tool execution.
 
 ## Feature Summary
 
@@ -64,7 +79,7 @@ The platform manages everything else: provisioning GPUs, running the RL training
 ## Choose Your Workflow
 
 <CardGroup cols={2}>
-  <Card title="Git Sync" icon="code-branch" href="/git-sync/overview">
+  <Card title="Local Rollout" icon="code-branch" href="/git-sync/overview">
     **Best for: reward functions, rubrics, and MCP tools**
 
     Define evaluation logic in your repository. Push to GitHub and Osmosis auto-syncs everything. No server to manage.

@@ -28,14 +28,14 @@ From your workspace dashboard:
 
 1. Click **New Project**
 2. Give it a name and description
-3. Choose your workflow — this determines how you'll connect your code:
-   - **Git Sync**: Connect a GitHub repository with reward functions and tools
+3. Choose your rollout mode — this determines how you'll connect your code:
+   - **Local Rollout**: Connect a GitHub repository with reward functions and tools
    - **Remote Rollout**: Point to a rollout server you host
 
 ## Step 4: Choose Your Path
 
 <CardGroup cols={2}>
-  <Card title="Git Sync Path" icon="code-branch" href="/git-sync/overview">
+  <Card title="Local Rollout" icon="code-branch" href="/git-sync/overview">
     **Sync tools and rewards from GitHub**
 
     1. Structure your repository with `mcp/`, `reward_fn/`, `reward_rubric/` folders
@@ -43,7 +43,7 @@ From your workspace dashboard:
     3. Push code — Osmosis auto-syncs your components
     4. Configure a [training run](/platform/training-runs) using your synced components
   </Card>
-  <Card title="Remote Rollout Path" icon="server" href="/remote-rollout/quickstart">
+  <Card title="Remote Rollout" icon="server" href="/remote-rollout/quickstart">
     **Build and host a custom agent server**
 
     1. Implement a `RolloutAgentLoop` using the SDK
@@ -55,7 +55,7 @@ From your workspace dashboard:
 
 ## Step 5: Configure Training
 
-Once your code is connected (via Git Sync or Remote Rollout):
+Once your code is connected (via Local Rollout or Remote Rollout):
 
 1. Navigate to **Training Runs** in your project
 2. Click **New Training Run**

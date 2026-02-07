@@ -25,6 +25,9 @@
       "url": "mailto:contact@osmosis.ai"
     }
   ],
+  "primaryTab": {
+    "name": "Introduction"
+  },
   "tabs": [
     {
       "name": "Platform",
@@ -39,7 +42,7 @@
       "url": "remote-rollout"
     },
     {
-      "name": "Git Sync",
+      "name": "Local Rollout",
       "url": "git-sync"
     }
   ],
@@ -79,7 +82,7 @@
       ]
     },
     {
-      "group": "Git Sync",
+      "group": "Local Rollout",
       "pages": [
         "git-sync/overview",
         "git-sync/folder-structure",
